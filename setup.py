@@ -27,7 +27,7 @@ extra_objects = []
 for obj in ['FlyCapture2_C_v110', 'FlyCapture2GUI_C_v110']:
     extra_objects.append(join(bin, prefix + obj + suffix))
 
-mods = ['_gui']
+mods = ['interface', 'exception']
 extra_compile_args = ["-O3", '-fno-strict-aliasing']
 
 if have_cython:
