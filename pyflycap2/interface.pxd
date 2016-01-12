@@ -1,5 +1,5 @@
 
-include "FlyCapture2.pxi"
+include "includes/FlyCapture2.pxi"
 
 
 cdef class CameraContext(object):
@@ -28,7 +28,10 @@ cdef class Camera(CameraContext):
 
     cdef public object connected
 
+    cdef fc2Image image
+
     cdef image_callback(self, fc2Image *image)
+    cpdef get_current_image(self)
 
 
 cdef class GUI(object):
