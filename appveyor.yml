@@ -1,0 +1,171 @@
+version: 1.0.{build}
+environment:
+  FLY_BUILD_DIR: C:\fly_build
+  FLY_LIB_VER: v110
+  DEPLOY_DIR: deploy
+  DEPLOY_ENV_DIR: deploy_env
+  access_token:
+    secure: H8F1UMqC4QixM9NbnHewuineXTu860e3WhkpgMzui6xQmCv2qyXd4BDonVrrW5Iv
+  flycap_bin:
+    secure: ASjU9CBr/NAxemKbV+3Ki9MPTPL1NWc5MIQ9GBo5i6I=
+  wheel_token:
+    secure: Mo0vLYV3MQSUepvvt70Syw==
+  matrix:
+  - PYVER: 27
+    BITTNESS: 32
+  - PYVER: 34
+    BITTNESS: 32
+  - PYVER: 27
+    BITTNESS: 64
+  - PYVER: 34
+    BITTNESS: 64
+build_script:
+- ps: >-
+    function Check-Error
+
+    {
+      param([int]$SuccessVal = 0)
+      if ($SuccessVal -ne $LastExitCode) {
+        throw "Failed with exit code $LastExitCode"
+      }
+    }
+
+    $env:PYTHONPATH = "$env:APPVEYOR_BUILD_FOLDER;$env:PYTHONPATH"
+    $env:PYFLYCAP2_INCLUDE = "$env:FLY_BUILD_DIR\flycap\include"
+    $env:PYFLYCAP2_LIB = "$env:FLY_BUILD_DIR\flycap\lib"
+    if ($env:BITTNESS -eq "64") {
+      $PYTHON_ROOT = "C:\Python$env:PYVER-x64"
+      $env:PYFLYCAP2_BIN = "$env:FLY_BUILD_DIR\flycap\x64"
+    } else {
+      $PYTHON_ROOT = "C:\Python$env:PYVER"
+      $env:PYFLYCAP2_BIN = "$env:FLY_BUILD_DIR\flycap\x86"
+    }
+    $env:PATH = "$PYTHON_ROOT;$PYTHON_ROOT\Scripts;$env:PATH;C:\Program Files\7-Zip;$env:PYFLYCAP2_BIN"
+
+    python -c "import sys;print('Python version is {}'.format(sys.version))"
+    Check-Error
+
+    mkdir "$env:FLY_BUILD_DIR"
+    Check-Error
+    mkdir "$env:PYFLYCAP2_LIB"
+    Check-Error
+    cd "$env:FLY_BUILD_DIR"
+    Invoke-WebRequest "https://www.dropbox.com/$env:flycap_bin?dl=1" -OutFile "flycap.7z"
+    Check-Error
+    7z x "flycap.7z"
+    Check-Error
+
+    cd "$env:PYFLYCAP2_BIN"
+    gendef "FlyCapture2_C_$env:FLY_LIB_VER.dll"
+    Check-Error
+    gendef "FlyCapture2GUI_C_$env:FLY_LIB_VER.dll"
+    Check-Error
+    dlltool --dllname "FlyCapture2_C_$env:FLY_LIB_VER.dll" --def "FlyCapture2_C_$env:FLY_LIB_VER.def" --output-lib "libFlyCapture2_C_$env:FLY_LIB_VER.dll.a"
+    Check-Error
+    dlltool --dllname "FlyCapture2GUI_C_$env:FLY_LIB_VER.dll" --def "FlyCapture2GUI_C_$env:FLY_LIB_VER.def" --output-lib "libFlyCapture2GUI_C_$env:FLY_LIB_VER.dll.a"
+    Check-Error
+    Copy-Item "$env:PYFLYCAP2_BIN\*" -destination "$env:PYFLYCAP2_LIB"
+    Check-Error
+    Remove-Item * -exclude *.dll
+    Check-Error
+    cd "$env:PYFLYCAP2_LIB"
+    Check-Error
+    Remove-Item *.dll
+    Check-Error
+
+    cd "$env:APPVEYOR_BUILD_FOLDER"
+    python -c "with open(r'$PYTHON_ROOT\Lib\distutils\distutils.cfg', 'wb') as fh: fh.write(b'[build]\ncompiler = mingw32\n')"
+    Check-Error
+    python -m pip install pip wheel setuptools --upgrade
+    Check-Error
+    pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
+    Check-Error
+    pip install cython nose
+    Check-Error
+
+    mkdir $env:DEPLOY_DIR
+    mkdir $env:DEPLOY_ENV_DIR
+    python setup.py bdist_wheel -d "$env:DEPLOY_DIR"
+    Check-Error
+    if ($env:BITTNESS -eq "64" -and $env:PYVER -eq "34") {
+      python setup.py sdist -d "$env:DEPLOY_DIR"
+      Check-Error
+    }
+    $env:PYFLYCAP2_WHEEL_DEPS="$env:PYFLYCAP2_BIN"
+    python setup.py bdist_wheel -d "$env:DEPLOY_ENV_DIR"
+    Check-Error
+    
+    $name = python -c "from os import listdir;print([l for l in listdir(r'$env:DEPLOY_ENV_DIR') if l.endswith('.whl')][0])"
+    Check-Error
+    7z a -p"$env:wheel_token" "$env:APPVEYOR_BUILD_FOLDER\$env:DEPLOY_DIR\$name.7z" ".\$env:DEPLOY_ENV_DIR\$name"
+    Check-Error
+
+test_script:
+- ps: >-
+    function Check-Error
+
+    {
+      param([int]$SuccessVal = 0)
+      if ($SuccessVal -ne $LastExitCode) {
+        throw "Failed with exit code $LastExitCode"
+      }
+    }
+
+
+    cd "$env:APPVEYOR_BUILD_FOLDER\$env:DEPLOY_ENV_DIR"
+    $name = python -c "import glob;print(glob.glob('*.whl')[0])"
+    Check-Error
+    echo $name
+    python -m wheel install "$name"
+    Check-Error
+
+    python -c "from pyflycap2.interface import CameraContext; CameraContext()"
+    Check-Error
+artifacts:
+- path: $(DEPLOY_DIR)\*
+  name: wheels
+on_success:
+- ps: >-
+    function Check-Error
+
+    {
+      param([int]$SuccessVal = 0)
+      if ($SuccessVal -ne $LastExitCode) {
+        throw "Failed with exit code $LastExitCode"
+      }
+    }
+
+
+
+    if ($env:BITTNESS -eq "64" -and $env:PYVER -eq "34" -and $env:APPVEYOR_REPO_BRANCH -eq "master" -and -not $env:APPVEYOR_PULL_REQUEST_NUMBER) {
+      cd "$env:APPVEYOR_BUILD_FOLDER"
+      python -m pip install sphinx
+      Check-Error
+      cd doc
+      ./make.bat html
+      Check-Error
+      cd ..
+      mkdir "C:\docs_temp"
+      Copy-Item "doc\build\html\*" "C:\docs_temp" -recurse
+      Check-Error
+
+      git config --global credential.helper store
+      Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
+      git config --global user.email "moiein2000@gmail.com"
+      git config --global user.name "Matthew Einhorn"
+      Check-Error
+
+      git checkout --orphan gh-pages
+      Check-Error
+      git rm -rf .
+      Remove-Item -recurse * -exclude .git
+      Copy-Item "C:\docs_temp\*" .  -recurse
+      echo "" > .nojekyll
+
+      git add .
+      Check-Error
+      git commit -a -m "Docs for git-$env:APPVEYOR_REPO_COMMIT"
+      Check-Error
+      git push origin gh-pages -f
+      Check-Error
+    }

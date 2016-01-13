@@ -5,8 +5,8 @@ except ImportError:
     from distutils.extension import Extension
 import os
 import sys
-from os.path import join, exists, dirname, abspath
-from os import environ
+from os.path import join, exists, dirname, abspath, isdir
+from os import environ, listdir
 from pyflycap2 import __version__
 try:
     import Cython.Compiler.Options
@@ -17,6 +17,17 @@ try:
 except ImportError:
     have_cython = False
     cmdclass = {}
+
+def get_wheel_data():
+    data = []
+    deps = environ.get('PYFLYCAP2_WHEEL_DEPS')
+    if deps and isdir(deps):
+        data.append(
+            ('share/pyflycap2/flycapture2/bin',
+             [join(deps, f) for f in listdir(deps)]
+            )
+        )
+    return data
 
 libraries = ['FlyCapture2_C_v110', 'FlyCapture2GUI_C_v110']
 include_dirs = []
@@ -68,4 +79,5 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Intended Audience :: Developers'],
     packages=['pyflycap2'],
+    data_files=get_wheel_data(),
     cmdclass=cmdclass, ext_modules=ext_modules)
