@@ -60,7 +60,7 @@ with open('README.rst') as fh:
     long_description = fh.read()
 
 setup(
-    name='PyFlyCap2',
+    name='pyflycap2',
     version=__version__,
     author='Matthew Einhorn',
     license='MIT',

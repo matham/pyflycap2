@@ -30,9 +30,14 @@ build_script:
       }
     }
 
+    $old_path = "$env:PYTHONPATH"
+
     $env:PYTHONPATH = "$env:APPVEYOR_BUILD_FOLDER;$env:PYTHONPATH"
+
     $env:PYFLYCAP2_INCLUDE = "$env:FLY_BUILD_DIR\flycap\include"
+
     $env:PYFLYCAP2_LIB = "$env:FLY_BUILD_DIR\flycap\lib"
+
     if ($env:BITTNESS -eq "64") {
       $PYTHON_ROOT = "C:\Python$env:PYVER-x64"
       $env:PYFLYCAP2_BIN = "$env:FLY_BUILD_DIR\flycap\x64"
@@ -40,65 +45,117 @@ build_script:
       $PYTHON_ROOT = "C:\Python$env:PYVER"
       $env:PYFLYCAP2_BIN = "$env:FLY_BUILD_DIR\flycap\x86"
     }
-    $env:PATH = "$PYTHON_ROOT;$PYTHON_ROOT\Scripts;$env:PATH;C:\Program Files\7-Zip;$env:PYFLYCAP2_BIN"
+
+    $env:PATH = "$PYTHON_ROOT;$PYTHON_ROOT\Scripts;$env:PATH;C:\Program Files\7-Zip"
+
 
     python -c "import sys;print('Python version is {}'.format(sys.version))"
+
     Check-Error
+
 
     mkdir "$env:FLY_BUILD_DIR"
+
     Check-Error
+
     mkdir "$env:PYFLYCAP2_LIB"
+
     Check-Error
+
+    python -c "with open(r'$PYTHON_ROOT\Lib\distutils\distutils.cfg', 'wb') as fh: fh.write(b'[build]\ncompiler = mingw32\n')"
+
+    Check-Error
+
+    python -m pip install pip wheel setuptools --upgrade
+
+    Check-Error
+
+    pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
+
+    Check-Error
+
+    pip install cython nose
+
+    Check-Error
+
+
+
     cd "$env:FLY_BUILD_DIR"
-    Invoke-WebRequest "https://www.dropbox.com/$env:flycap_bin?dl=1" -OutFile "flycap.7z"
+
+    Invoke-WebRequest "https://www.dropbox.com/$env:flycap_bin`?dl=1" -OutFile "flycap.7z"
+
     Check-Error
+
     7z x "flycap.7z"
+
     Check-Error
+
 
     cd "$env:PYFLYCAP2_BIN"
+
     gendef "FlyCapture2_C_$env:FLY_LIB_VER.dll"
+
     Check-Error
+
     gendef "FlyCapture2GUI_C_$env:FLY_LIB_VER.dll"
+
     Check-Error
+
     dlltool --dllname "FlyCapture2_C_$env:FLY_LIB_VER.dll" --def "FlyCapture2_C_$env:FLY_LIB_VER.def" --output-lib "libFlyCapture2_C_$env:FLY_LIB_VER.dll.a"
+
     Check-Error
+
     dlltool --dllname "FlyCapture2GUI_C_$env:FLY_LIB_VER.dll" --def "FlyCapture2GUI_C_$env:FLY_LIB_VER.def" --output-lib "libFlyCapture2GUI_C_$env:FLY_LIB_VER.dll.a"
+
     Check-Error
+
     Copy-Item "$env:PYFLYCAP2_BIN\*" -destination "$env:PYFLYCAP2_LIB"
+
     Check-Error
+
     Remove-Item * -exclude *.dll
+
     Check-Error
+
     cd "$env:PYFLYCAP2_LIB"
+
     Check-Error
+
     Remove-Item *.dll
+
     Check-Error
+
+
 
     cd "$env:APPVEYOR_BUILD_FOLDER"
-    python -c "with open(r'$PYTHON_ROOT\Lib\distutils\distutils.cfg', 'wb') as fh: fh.write(b'[build]\ncompiler = mingw32\n')"
-    Check-Error
-    python -m pip install pip wheel setuptools --upgrade
-    Check-Error
-    pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy
-    Check-Error
-    pip install cython nose
-    Check-Error
 
     mkdir $env:DEPLOY_DIR
+
     mkdir $env:DEPLOY_ENV_DIR
+
     python setup.py bdist_wheel -d "$env:DEPLOY_DIR"
+
     Check-Error
+
     if ($env:BITTNESS -eq "64" -and $env:PYVER -eq "34") {
       python setup.py sdist -d "$env:DEPLOY_DIR"
       Check-Error
     }
     $env:PYFLYCAP2_WHEEL_DEPS="$env:PYFLYCAP2_BIN"
+
     python setup.py bdist_wheel -d "$env:DEPLOY_ENV_DIR"
+
     Check-Error
-    
+
     $name = python -c "from os import listdir;print([l for l in listdir(r'$env:DEPLOY_ENV_DIR') if l.endswith('.whl')][0])"
+
     Check-Error
+
     7z a -p"$env:wheel_token" "$env:APPVEYOR_BUILD_FOLDER\$env:DEPLOY_DIR\$name.7z" ".\$env:DEPLOY_ENV_DIR\$name"
+
     Check-Error
+
+    $env:PYTHONPATH = "$old_path"
 
 test_script:
 - ps: >-
@@ -113,14 +170,22 @@ test_script:
 
 
     cd "$env:APPVEYOR_BUILD_FOLDER\$env:DEPLOY_ENV_DIR"
+
     $name = python -c "import glob;print(glob.glob('*.whl')[0])"
+
     Check-Error
+
     echo $name
+
     python -m wheel install "$name"
+
     Check-Error
 
     python -c "from pyflycap2.interface import CameraContext; CameraContext()"
+
     Check-Error
+
+
 artifacts:
 - path: $(DEPLOY_DIR)\*
   name: wheels
