@@ -38,9 +38,11 @@ cdef class CameraContext(object):
         self.context = NULL
         self.context_type = context_type
         if context_type == 'GigE':
-            check_ret(fc2CreateGigEContext(&self.context))
+            with nogil:
+                check_ret(fc2CreateGigEContext(&self.context))
         elif context_type == 'IIDC':
-            check_ret(fc2CreateContext(&self.context))
+            with nogil:
+                check_ret(fc2CreateContext(&self.context))
         else:
             raise Exception(
                 'Cannot recognize camera type "{}". Valid values are '
@@ -48,29 +50,36 @@ cdef class CameraContext(object):
 
     def __dealloc__(self):
         if self.context != NULL:
-            fc2DestroyContext(self.context)
+            with nogil:
+                fc2Disconnect(self.context)
+                fc2DestroyContext(self.context)
             self.context = NULL
 
     def reset_1394(self, Camera camera):
-        check_ret(fc2FireBusReset(self.context, &camera._guid))
+        with nogil:
+            check_ret(fc2FireBusReset(self.context, &camera._guid))
 
     def get_num_cameras(self):
         cdef unsigned int n = 0
-        check_ret(fc2GetNumOfCameras(self.context, &n))
+        with nogil:
+            check_ret(fc2GetNumOfCameras(self.context, &n))
         return n
 
     def get_num_devices(self):
         cdef unsigned int n = 0
-        check_ret(fc2GetNumOfDevices(self.context, &n))
+        with nogil:
+            check_ret(fc2GetNumOfDevices(self.context, &n))
         return n
 
-    def get_device_guid_from_index(self, index):
+    def get_device_guid_from_index(self, unsigned int index):
         cdef fc2PGRGuid guid
-        check_ret(fc2GetDeviceFromIndex(self.context, index, &guid))
+        with nogil:
+            check_ret(fc2GetDeviceFromIndex(self.context, index, &guid))
         return [guid.value[i] for i in range(4)]
 
     def rescan_bus(self):
-        check_ret(fc2RescanBus(self.context))
+        with nogil:
+            check_ret(fc2RescanBus(self.context))
 
     def force_mac_to_ip(self, ip, subnet, gateway, mac_address=None,
                         Camera cam=None):
@@ -89,10 +98,12 @@ cdef class CameraContext(object):
         for i in range(4):
             _gateway.octets[i] = gateway[i]
 
-        check_ret(fc2ForceIPAddressToCamera(self.context, mac, _ip, _subnet, _gateway))
+        with nogil:
+            check_ret(fc2ForceIPAddressToCamera(self.context, mac, _ip, _subnet, _gateway))
 
     def force_all_ips(self):
-        check_ret(fc2ForceAllIPAddressesAutomatically())
+        with nogil:
+            check_ret(fc2ForceAllIPAddressesAutomatically())
 
     def get_gige_cams(self):
         cdef fc2Error error
@@ -101,14 +112,16 @@ cdef class CameraContext(object):
         cdef unsigned int count = sizeof(cams)
         cdef int i
 
-        error = fc2DiscoverGigECameras(self.context, cams, &count)
+        with nogil:
+            error = fc2DiscoverGigECameras(self.context, cams, &count)
         if error == FC2_ERROR_BUFFER_TOO_SMALL:
             pcams = <fc2CameraInfo *>malloc(count * sizeof(fc2CameraInfo))
             if pcams == NULL:
                 raise MemoryError()
 
             try:
-                check_ret(fc2DiscoverGigECameras(self.context, pcams, &count))
+                with nogil:
+                    check_ret(fc2DiscoverGigECameras(self.context, pcams, &count))
                 return [pcams[i].serialNumber for i in range(count)]
             finally:
                 free(pcams)
@@ -119,43 +132,55 @@ cdef class CameraContext(object):
 
     def get_default_color_processing(self):
         cdef fc2ColorProcessingAlgorithm method
-        check_ret(fc2GetDefaultColorProcessing(&method))
+        with nogil:
+            check_ret(fc2GetDefaultColorProcessing(&method))
         return color_algos_inv.get(method, 'unknown')
 
     def set_default_color_processing(self, algo):
+        cdef fc2ColorProcessingAlgorithm default_method
         if algo not in color_algos:
             raise ValueError('"{}" not found in allowed values {}'.format(
                 algo, ', '.join(['"{}"'.format(k) for k in color_algos.keys()])))
 
-        check_ret(fc2SetDefaultColorProcessing(color_algos[algo]))
+        default_method = color_algos[algo]
+        with nogil:
+            check_ret(fc2SetDefaultColorProcessing(default_method))
 
     def get_default_pix_fmt(self):
         cdef fc2PixelFormat fmt
-        check_ret(fc2GetDefaultOutputFormat(&fmt))
+        with nogil:
+            check_ret(fc2GetDefaultOutputFormat(&fmt))
         return pixel_fmts_inv.get(fmt, 'unknown')
 
     def set_default_pix_fmt(self, fmt):
+        cdef fc2PixelFormat format
         if fmt not in pixel_fmts:
             raise ValueError('"{}" not found in allowed values {}'.format(
                 fmt, ', '.join(['"{}"'.format(k) for k in pixel_fmts.keys()])))
-        check_ret(fc2SetDefaultOutputFormat(pixel_fmts[fmt]))
+
+        format = pixel_fmts[fmt]
+        with nogil:
+            check_ret(fc2SetDefaultOutputFormat(format))
 
     def get_bpp(self, fmt):
+        cdef fc2PixelFormat format
         cdef unsigned int bpp
 
         if fmt not in pixel_fmts:
             raise ValueError('"{}" not found in allowed values {}'.format(
                 fmt, ', '.join(['"{}"'.format(k) for k in pixel_fmts.keys()])))
 
-        check_ret(fc2DetermineBitsPerPixel(pixel_fmts[fmt], &bpp))
+        format = pixel_fmts[fmt]
+        with nogil:
+            check_ret(fc2DetermineBitsPerPixel(format, &bpp))
         return bpp
 
     def cycle_time(self):
         cdef fc2TimeStamp t
-        check_ret(fc2GetCycleTime(self.context, &t))
+        with nogil:
+            check_ret(fc2GetCycleTime(self.context, &t))
         return TimeStamp(
             t.seconds, t.microSeconds, t.cycleSeconds, t.cycleCount, t.cycleOffset)
-
 
 
 cdef class Camera(CameraContext):
@@ -172,26 +197,33 @@ cdef class Camera(CameraContext):
                 self._guid.value[i] = guid[i]
         elif index is not None:
             self.index = index
-            check_ret(fc2GetCameraFromIndex(self.context, self.index, &self._guid))
+            with nogil:
+                check_ret(fc2GetCameraFromIndex(self.context, self.index, &self._guid))
         elif ip is not None:
             for i in range(4):
                 _ip.octets[i] = ip[i]
-            check_ret(fc2GetCameraFromIPAddress(self.context, _ip, &self._guid))
+            with nogil:
+                check_ret(fc2GetCameraFromIPAddress(self.context, _ip, &self._guid))
         elif serial is not None:
             self.serial = serial
-            check_ret(fc2GetCameraFromSerialNumber(self.context, self.serial, &self._guid))
+            with nogil:
+                check_ret(fc2GetCameraFromSerialNumber(self.context, self.serial, &self._guid))
         else:
             raise Exception('At least one of guid, index, ip, or serial must be specified.')
 
         self.guid = [self._guid.value[i] for i in range(4)]
-        check_ret(fc2Connect(self.context, &self._guid))
+        with nogil:
+            check_ret(fc2Connect(self.context, &self._guid))
         try:
-            check_ret(fc2GetCameraInfo(self.context, &self.cam_info))
+            with nogil:
+                check_ret(fc2GetCameraInfo(self.context, &self.cam_info))
         except:
-            fc2Disconnect(self.context)
+            with nogil:
+                fc2Disconnect(self.context)
             raise
         else:
-            check_ret(fc2Disconnect(self.context))
+            with nogil:
+                check_ret(fc2Disconnect(self.context))
 
         self.serial = self.cam_info.serialNumber
         self.is_color = bool(self.cam_info.isColorCamera)
@@ -214,19 +246,29 @@ cdef class Camera(CameraContext):
         # check_ret(fc2SetCallback(self.context, <fc2ImageEventCallback>image_event_callback, <PyObject*>self))
 
     def __dealloc__(self):
-        fc2Disconnect(self.context)
-        fc2DestroyImage(&self.image)
+        with nogil:
+            fc2DestroyImage(&self.image)
 
     def is_controlable(self):
         cdef BOOL controlable = 0
-        check_ret(fc2IsCameraControlable(self.context, &self._guid, &controlable))
+        with nogil:
+            check_ret(fc2IsCameraControlable(self.context, &self._guid, &controlable))
         return bool(controlable)
 
-    def set_buffer_mode(self, drop=True):
+    def set_drop_mode(self, int drop=True):
         cdef fc2Config config
-        check_ret(fc2GetConfiguration(self.context, &config))
-        config.grabMode = FC2_DROP_FRAMES if drop else FC2_BUFFER_FRAMES
-        check_ret(fc2SetConfiguration(self.context, &config))
+        with nogil:
+            check_ret(fc2GetConfiguration(self.context, &config))
+            config.grabMode = FC2_DROP_FRAMES if drop else FC2_BUFFER_FRAMES
+            check_ret(fc2SetConfiguration(self.context, &config))
+
+    def get_drop_mode(self):
+        '''Returns True if the camera will drop frames rather than buffer it.
+        '''
+        cdef fc2Config config
+        with nogil:
+            check_ret(fc2GetConfiguration(self.context, &config))
+        return config.grabMode == FC2_DROP_FRAMES
 
     def _convert_mode_args(self, width, height, fmt, rate):
         if fmt == 'fmt7':
@@ -249,19 +291,22 @@ cdef class Camera(CameraContext):
         cdef fc2FrameRate _rate
         cdef BOOL supported = 0
         mode, _rate = self._convert_mode_args(width, height, fmt, rate)
-        check_ret(fc2GetVideoModeAndFrameRateInfo(self.context, mode, rate, &supported))
+        with nogil:
+            check_ret(fc2GetVideoModeAndFrameRateInfo(self.context, mode, _rate, &supported))
         return bool(supported)
 
     def set_video_mode(self, width, height, fmt, rate):
         cdef fc2VideoMode mode
         cdef fc2FrameRate _rate
         mode, _rate = self._convert_mode_args(width, height, fmt, rate)
-        check_ret(fc2SetVideoModeAndFrameRate(self.context, mode, rate))
+        with nogil:
+            check_ret(fc2SetVideoModeAndFrameRate(self.context, mode, _rate))
 
     def get_video_mode(self):
         cdef fc2VideoMode _mode = FC2_VIDEOMODE_FORMAT7
         cdef fc2FrameRate _rate = FC2_FRAMERATE_FORMAT7
-        check_ret(fc2GetVideoModeAndFrameRate(self.context, &_mode, &_rate))
+        with nogil:
+            check_ret(fc2GetVideoModeAndFrameRate(self.context, &_mode, &_rate))
 
         if _mode not in video_modes_inv:
             raise Exception('Unknown video mode {}'.format(<int>_mode))
@@ -288,7 +333,8 @@ cdef class Camera(CameraContext):
             supported = 0
             memset(&info, 0, sizeof(fc2Format7Info))
             info.mode = mode
-            check_ret(fc2GetFormat7Info(self.context, &info, &supported))
+            with nogil:
+                check_ret(fc2GetFormat7Info(self.context, &info, &supported))
             if not supported:
                 continue
             modes[<int>mode] = {
@@ -319,7 +365,8 @@ cdef class Camera(CameraContext):
         settings.width = width
         settings.height = height
         settings.pixelFormat = pixel_fmts[fmt]
-        check_ret(fc2ValidateFormat7Settings(self.context, &settings, &valid, &packet))
+        with nogil:
+            check_ret(fc2ValidateFormat7Settings(self.context, &settings, &valid, &packet))
         return (bool(valid), int(packet.recommendedBytesPerPacket),
                 int(settings.maxBytesPerPacket), int(settings.unitBytesPerPacket))
 
@@ -328,7 +375,8 @@ cdef class Camera(CameraContext):
         cdef unsigned int size
         cdef float percentage
 
-        check_ret(fc2GetFormat7Configuration(self.context, &settings, &size, &percentage))
+        with nogil:
+            check_ret(fc2GetFormat7Configuration(self.context, &settings, &size, &percentage))
         fmt = pixel_fmts_inv.get(settings.pixelFormat, 'unknown')
 
         return ({'mode': <int>settings.mode, 'offset_x': settings.offsetX,
@@ -338,6 +386,8 @@ cdef class Camera(CameraContext):
     def set_fmt7_config(self, mode, offset_x, offset_y, width, height, fmt,
                         packet_size=None, packet_percentage=None):
         cdef fc2Format7ImageSettings settings
+        cdef float packet_f
+        cdef unsigned int packet_ui
         if fmt not in pixel_fmts:
             raise Exception('{} not found in {}'.format(fmt, ', '.join(pixel_fmts.keys())))
 
@@ -349,9 +399,13 @@ cdef class Camera(CameraContext):
         settings.pixelFormat = pixel_fmts[fmt]
 
         if packet_size is not None:
-            check_ret(fc2SetFormat7ConfigurationPacket(self.context, &settings, packet_size))
+            packet_ui = packet_size
+            with nogil:
+                check_ret(fc2SetFormat7ConfigurationPacket(self.context, &settings, packet_ui))
         if packet_percentage is not None:
-            check_ret(fc2SetFormat7Configuration(self.context, &settings, packet_percentage))
+            packet_f = packet_percentage
+            with nogil:
+                check_ret(fc2SetFormat7Configuration(self.context, &settings, packet_f))
 
     def verify_gige_mode(self, mode):
         cdef fc2Mode fcmode
@@ -360,12 +414,14 @@ cdef class Camera(CameraContext):
             raise Exception('Unrecognized mode {}'.format(mode))
 
         fcmode = <fc2Mode>mode
-        check_ret(fc2QueryGigEImagingMode(self.context, fcmode, &supported))
+        with nogil:
+            check_ret(fc2QueryGigEImagingMode(self.context, fcmode, &supported))
         return bool(supported)
 
     def get_gige_mode(self):
         cdef fc2Mode mode
-        check_ret(fc2GetGigEImagingMode(self.context, &mode))
+        with nogil:
+            check_ret(fc2GetGigEImagingMode(self.context, &mode))
         return <int>mode
 
     def set_gige_mode(self, mode):
@@ -374,12 +430,14 @@ cdef class Camera(CameraContext):
             raise Exception('Unrecognized mode {}'.format(mode))
 
         fcmode = <fc2Mode>mode
-        check_ret(fc2SetGigEImagingMode(self.context, fcmode))
+        with nogil:
+            check_ret(fc2SetGigEImagingMode(self.context, fcmode))
 
     def get_gige_specs(self):
         cdef fc2GigEImageSettingsInfo info
 
-        check_ret(fc2GetGigEImageSettingsInfo(self.context, &info))
+        with nogil:
+            check_ret(fc2GetGigEImageSettingsInfo(self.context, &info))
         return {
             'max_width': info.maxWidth, 'max_height': info.maxHeight,
             'h_offset_step': info.offsetHStepSize,
@@ -393,7 +451,8 @@ cdef class Camera(CameraContext):
     def get_gige_config(self):
         cdef fc2GigEImageSettings settings
 
-        check_ret(fc2GetGigEImageSettings(self.context, &settings))
+        with nogil:
+            check_ret(fc2GetGigEImageSettings(self.context, &settings))
 
         return {'offset_x': settings.offsetX, 'offset_y': settings.offsetY,
                  'width': settings.width, 'height': settings.height,
@@ -409,11 +468,13 @@ cdef class Camera(CameraContext):
         settings.width = width
         settings.height = height
         settings.pixelFormat = pixel_fmts[fmt]
-        check_ret(fc2SetGigEImageSettings(self.context, &settings))
+        with nogil:
+            check_ret(fc2SetGigEImageSettings(self.context, &settings))
 
     def get_gige_packet_config(self):
         cdef fc2GigEConfig settings
-        check_ret(fc2GetGigEConfig(self.context, &settings))
+        with nogil:
+            check_ret(fc2GetGigEConfig(self.context, &settings))
         return {'resend': bool(settings.enablePacketResend),
                 'resend_timeout': settings.timeoutForPacketResend,
                 'max_resend_packets': settings.maxPacketsToResend}
@@ -423,25 +484,30 @@ cdef class Camera(CameraContext):
         settings.enablePacketResend = resend
         settings.timeoutForPacketResend = int(resend_timeout)
         settings.maxPacketsToResend = int(max_resend_packets)
-        check_ret(fc2SetGigEConfig(self.context, &settings))
+        with nogil:
+            check_ret(fc2SetGigEConfig(self.context, &settings))
 
     def get_gige_binning(self):
         cdef unsigned int hvalue, vvalue
-        check_ret(fc2GetGigEImageBinningSettings(self.context, &hvalue, &vvalue))
+        with nogil:
+            check_ret(fc2GetGigEImageBinningSettings(self.context, &hvalue, &vvalue))
         return hvalue, vvalue
 
-    def set_gige_binning(self, horizontal, vertical):
-        check_ret(fc2SetGigEImageBinningSettings(self.context, horizontal, vertical))
+    def set_gige_binning(self, unsigned int horizontal, unsigned int vertical):
+        with nogil:
+            check_ret(fc2SetGigEImageBinningSettings(self.context, horizontal, vertical))
 
     def get_gige_num_streams(self):
         cdef unsigned int value
-        check_ret(fc2GetNumStreamChannels(self.context, &value))
+        with nogil:
+            check_ret(fc2GetNumStreamChannels(self.context, &value))
         return value
 
-    def get_gige_stream_config(self, chan):
+    def get_gige_stream_config(self, unsigned int chan):
         cdef fc2GigEStreamChannel config
         cdef int i
-        check_ret(fc2GetGigEStreamChannelInfo(self.context, chan, &config))
+        with nogil:
+            check_ret(fc2GetGigEStreamChannelInfo(self.context, chan, &config))
         return {
             'net_index': config.networkInterfaceIndex,
             'host_post': config.hostPost, 'frag': bool(config.doNotFragment),
@@ -450,7 +516,7 @@ cdef class Camera(CameraContext):
             'src_port': config.sourcePort}
 
     def set_gige_stream_config(
-            self, chan, net_index, host_post, frag, packet_size, delay,
+            self, unsigned int chan, net_index, host_post, frag, packet_size, delay,
             dest_ip, src_port):
         cdef int i
         cdef fc2GigEStreamChannel config
@@ -465,25 +531,29 @@ cdef class Camera(CameraContext):
             config.destinationIpAddress.octets[i] = dest_ip[i]
         config.sourcePort = src_port
 
-        check_ret(fc2SetGigEStreamChannelInfo(self.context, chan, &config))
+        with nogil:
+            check_ret(fc2SetGigEStreamChannelInfo(self.context, chan, &config))
 
     def connect(self):
         if not self.connected:
-            check_ret(fc2CreateImage(&self.image))
-            check_ret(fc2Connect(self.context, &self._guid))
+            with nogil:
+                check_ret(fc2CreateImage(&self.image))
+                check_ret(fc2Connect(self.context, &self._guid))
             self.connected = True
 
-    def diconnect(self):
+    def disconnect(self):
         if self.connected:
-            check_ret(fc2Disconnect(self.context))
+            with nogil:
+                check_ret(fc2Disconnect(self.context))
+                check_ret(fc2DestroyImage(&self.image))
             self.connected = False
-            check_ret(fc2DestroyImage(&self.image))
 
     cdef image_callback(self, fc2Image *image):
         pass
 
     def start_capture(self):
-        check_ret(fc2StartCapture(self.context))
+        with nogil:
+            check_ret(fc2StartCapture(self.context))
 
     def start_capture_sync(self, other_cams):
         cdef list cams = [self] + list(other_cams)
@@ -499,33 +569,25 @@ cdef class Camera(CameraContext):
         try:
             for i, cam in enumerate(cams):
                 contexts[i] = cam.context
-            check_ret(fc2StartSyncCapture(n, contexts))
+            with nogil:
+                check_ret(fc2StartSyncCapture(n, contexts))
         finally:
             free(contexts)
 
     def stop_capture(self):
-        check_ret(fc2StopCapture(self.context))
+        with nogil:
+            check_ret(fc2StopCapture(self.context))
 
     def read_next_image(self):
-        check_ret(fc2RetrieveBuffer(self.context, &self.image))
+        with nogil:
+            check_ret(fc2RetrieveBuffer(self.context, &self.image))
 
-    def get_current_image_config(self):
-        return {
-            'rows': self.image.rows, 'cols': self.image.cols,
-            'stride': self.image.stride, 'data_size': self.image.dataSize,
-            'received_size': self.image.receivedDataSize,
-            'pix_fmt': pixel_fmts_inv.get(self.image.format, 'unknown'),
-            'bayer_fmt': bayer_fmts_inv.get(self.image.bayerFormat, 'unknown')
-        }
-
-    cpdef get_current_image(self):
-        cdef object buffer = bytearray('\0') * self.image.dataSize
-        cdef unsigned char *dest = buffer
-        cdef unsigned char *src = NULL
-
-        if self.image.dataSize:
-            check_ret(fc2GetImageData(&self.image, &src))
-            memcpy(dest, src, self.image.dataSize)
+    cpdef get_current_image_config(self):
+        cdef fc2TimeStamp t
+        with nogil:
+            t = fc2GetImageTimeStamp(&self.image)
+        ts = TimeStamp(
+            t.seconds, t.microSeconds, t.cycleSeconds, t.cycleCount, t.cycleOffset)
 
         return {
             'rows': self.image.rows, 'cols': self.image.cols,
@@ -533,51 +595,80 @@ cdef class Camera(CameraContext):
             'received_size': self.image.receivedDataSize,
             'pix_fmt': pixel_fmts_inv.get(self.image.format, 'unknown'),
             'bayer_fmt': bayer_fmts_inv.get(self.image.bayerFormat, 'unknown'),
-            'buffer': buffer
+            'ts': ts
         }
 
+    cpdef get_current_image(self):
+        cdef object buffer = bytearray('\0') * self.image.dataSize
+        cdef unsigned char *dest = buffer
+        cdef unsigned char *src = NULL
+        cdef dict res = self.get_current_image_config()
+
+        if self.image.dataSize:
+            with nogil:
+                check_ret(fc2GetImageData(&self.image, &src))
+                memcpy(dest, src, self.image.dataSize)
+        res['buffer'] = buffer
+        return res
+
     def save_current_image(self, filename, ext='auto'):
+        cdef bytes fname = filename if isinstance(filename, bytes) else filename.encode('utf8')
+        cdef char *cname = fname
+        cdef fc2ImageFileFormat format
         if ext not in image_file_types:
             raise ValueError('"{}" not found in allowed values {}'.format(
                 ext, ', '.join(['"{}"'.format(k) for k in image_file_types.keys()])))
-        check_ret(fc2SaveImage(&self.image, filename, image_file_types[ext]))
+
+        format = image_file_types[ext]
+        with nogil:
+            check_ret(fc2SaveImage(&self.image, cname, format))
 
 
 cdef class GUI(object):
 
     def __cinit__(self, **kwargs):
         self.gui_context = NULL
-        check_ret(fc2CreateGUIContext(&self.gui_context))
+        with nogil:
+            check_ret(fc2CreateGUIContext(&self.gui_context))
 
     def __dealloc__(self):
         if self.gui_context != NULL:
-            fc2DestroyGUIContext(self.gui_context)
+            with nogil:
+                fc2DestroyGUIContext(self.gui_context)
             self.gui_context = NULL
 
     def connect_camera(self, Camera cam):
-        fc2GUIConnect(self.gui_context, cam.context)
+        with nogil:
+            fc2GUIConnect(self.gui_context, cam.context)
 
     def disconnect_camera(self):
-        fc2GUIDisconnect(self.gui_context)
+        with nogil:
+            fc2GUIDisconnect(self.gui_context)
 
     def show(self):
         if not self.is_gui_visible():
-            fc2Show(self.gui_context)
+            with nogil:
+                fc2Show(self.gui_context)
 
     def hide(self):
         if self.is_gui_visible():
-            fc2Hide(self.gui_context)
+            with nogil:
+                fc2Hide(self.gui_context)
 
     def is_gui_visible(self):
-        return bool(fc2IsVisible(self.gui_context))
+        cdef int visible
+        with nogil:
+            visible = fc2IsVisible(self.gui_context)
+        return bool(visible)
 
     def show_selection(self):
         cdef BOOL selected = 0
-        cdef unsigned int s = 0
-        cdef fc2PGRGuid *guid = NULL
+        cdef unsigned int s = 16
+        cdef fc2PGRGuid guid[16]
         cdef int i, j
 
-        fc2ShowModal(self.gui_context, &selected, guid, &s)
+        with nogil:
+            fc2ShowModal(self.gui_context, &selected, guid, &s)
         if selected:
             return bool(selected), [[guid[i].value[j] for j in range(4)] for i in range(s)]
-        return False, [[guid[i].value[j] for j in range(4)] for i in range(s)]
+        return False, []

@@ -31,6 +31,7 @@ cdef class Camera(CameraContext):
     cdef fc2Image image
 
     cdef image_callback(self, fc2Image *image)
+    cpdef get_current_image_config(self)
     cpdef get_current_image(self)
 
 

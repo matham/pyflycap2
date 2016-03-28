@@ -1,8 +1,10 @@
 
 
-cdef inline check_ret(fc2Error ret):
+cdef inline int check_ret(fc2Error ret) nogil except 1:
     if ret != FC2_ERROR_OK:
-        raise Exception('PyFlyCap2: {}'.format(fc2ErrorToDescription(ret)))
+        with gil:
+            raise Exception('PyFlyCap2: {}'.format(fc2ErrorToDescription(ret)))
+    return 0
 
 
 cdef dict video_modes = {
