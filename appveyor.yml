@@ -6,10 +6,8 @@ environment:
   DEPLOY_ENV_DIR: deploy_env
   access_token:
     secure: H8F1UMqC4QixM9NbnHewuineXTu860e3WhkpgMzui6xQmCv2qyXd4BDonVrrW5Iv
-  flycap_bin:
-    secure: ASjU9CBr/NAxemKbV+3Ki9MPTPL1NWc5MIQ9GBo5i6I=
   wheel_token:
-    secure: Mo0vLYV3MQSUepvvt70Syw==
+    secure: QHWNQIhdUM3nR/Tj9wkVIQ==
   matrix:
   - PYVER: 27
     BITTNESS: 32
@@ -36,8 +34,6 @@ build_script:
 
     $env:PYFLYCAP2_INCLUDE = "$env:FLY_BUILD_DIR\flycap\include"
 
-    $env:PYFLYCAP2_LIB = "$env:FLY_BUILD_DIR\flycap\lib"
-
     if ($env:BITTNESS -eq "64") {
       $PYTHON_ROOT = "C:\Python$env:PYVER-x64"
       $env:PYFLYCAP2_BIN = "$env:FLY_BUILD_DIR\flycap\x64"
@@ -45,6 +41,8 @@ build_script:
       $PYTHON_ROOT = "C:\Python$env:PYVER"
       $env:PYFLYCAP2_BIN = "$env:FLY_BUILD_DIR\flycap\x86"
     }
+
+    $env:PYFLYCAP2_LIB = "$env:PYFLYCAP2_BIN"
 
     $env:PATH = "$PYTHON_ROOT;$PYTHON_ROOT\Scripts;$env:PATH;C:\Program Files\7-Zip"
 
@@ -55,10 +53,6 @@ build_script:
 
 
     mkdir "$env:FLY_BUILD_DIR"
-
-    Check-Error
-
-    mkdir "$env:PYFLYCAP2_LIB"
 
     Check-Error
 
@@ -82,46 +76,11 @@ build_script:
 
     cd "$env:FLY_BUILD_DIR"
 
-    Invoke-WebRequest "https://www.dropbox.com/$env:flycap_bin`?dl=1" -OutFile "flycap.7z"
+    Invoke-WebRequest "https://www.dropbox.com/s/uqll42k6h6z2w0t/flycap.7z?dl=1" -OutFile "flycap.7z"
 
     Check-Error
 
-    7z x "flycap.7z"
-
-    Check-Error
-
-
-    cd "$env:PYFLYCAP2_BIN"
-
-    gendef "FlyCapture2_C_$env:FLY_LIB_VER.dll"
-
-    Check-Error
-
-    gendef "FlyCapture2GUI_C_$env:FLY_LIB_VER.dll"
-
-    Check-Error
-
-    dlltool --dllname "FlyCapture2_C_$env:FLY_LIB_VER.dll" --def "FlyCapture2_C_$env:FLY_LIB_VER.def" --output-lib "libFlyCapture2_C_$env:FLY_LIB_VER.dll.a"
-
-    Check-Error
-
-    dlltool --dllname "FlyCapture2GUI_C_$env:FLY_LIB_VER.dll" --def "FlyCapture2GUI_C_$env:FLY_LIB_VER.def" --output-lib "libFlyCapture2GUI_C_$env:FLY_LIB_VER.dll.a"
-
-    Check-Error
-
-    Copy-Item "$env:PYFLYCAP2_BIN\*" -destination "$env:PYFLYCAP2_LIB"
-
-    Check-Error
-
-    Remove-Item * -exclude *.dll
-
-    Check-Error
-
-    cd "$env:PYFLYCAP2_LIB"
-
-    Check-Error
-
-    Remove-Item *.dll
+    7z x "flycap.7z" -p"$env:wheel_token"
 
     Check-Error
 
