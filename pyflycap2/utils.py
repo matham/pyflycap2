@@ -1,8 +1,25 @@
+'''Utilities
+=============
+
+Module for extracting cython headers from the fly capture c headers.
+For example::
+
+    header = r'E:\Point Grey Research\FlyCapture2\include\FlyCapture2_C'
+    content = parse_header('{}.h'.format(header))
+    dump_cython(content, '{}.h'.format(header), '{}.pxi'.format(header))
+'''
+
 from re import compile, match, sub, split
 import traceback
 import re
 from functools import partial
 from collections import namedtuple
+
+__all__ = (
+    'VariableSpec', 'FunctionSpec', 'StructSpec', 'EnumSpec', 'EnumMemberSpec',
+    'TypeDef', 'strip_comments', 'parse_prototype', 'parse_struct',
+    'parse_enum', 'parse_header', 'format_typedef', 'format_enum',
+    'format_variable', 'format_function', 'format_struct', 'dump_cython')
 
 tab = '    '
 sp_pat = compile(' +')
@@ -21,15 +38,35 @@ typedef_pat = compile('typedef +(.+?);')
 
 
 VariableSpec = namedtuple('VariableSpec', ['type', 'pointer', 'name', 'count'])
+'''Represents a variable declaration in e.g. the definition of a function
+or its return value.
+'''
+
 FunctionSpec = namedtuple('FunctionSpec',
                           ['dec', 'type', 'pointer', 'name', 'args'])
+'''Represents a c function prototype.
+'''
+
 StructSpec = namedtuple('StructSpec', ['tp_name', 'names', 'members'])
+'''Represents a c struct definition.
+'''
+
 EnumSpec = namedtuple('EnumSpec', ['tp_name', 'names', 'values'])
+'''Represents a c enum definition.
+'''
+
 EnumMemberSpec = namedtuple('EnumMemberSpec', ['name', 'value'])
+'''Represents a c enum member.
+'''
+
 TypeDef = namedtuple('TypeDef', ['body'])
+'''Represents a c typedef.
+'''
 
 
 def strip_comments(code):
+    '''Returns the headers with comments removed.
+    '''
     single_comment = compile('//.*')  # single line comment
     multi_comment = compile('/\\*\\*.*?\\*/', re.DOTALL)  # multiline comment
     code = sub(single_comment, '', code)
@@ -38,6 +75,8 @@ def strip_comments(code):
 
 
 def parse_prototype(prototype):
+    '''Returns a :attr:`FunctionSpec` instance from the input.
+    '''
     val = ' '.join(prototype.splitlines())
     f = match(func_pat, val)  # match the whole function
     if f is None:
@@ -58,6 +97,8 @@ def parse_prototype(prototype):
 
 
 def parse_struct(type_name, body, name):
+    '''Returns a :attr:`StructSpec` instance from the input.
+    '''
     type_name, name = type_name.strip(), name.strip()
     lines = [l.strip() for l in body.splitlines() if l.strip()]
     members = []
@@ -73,6 +114,8 @@ def parse_struct(type_name, body, name):
 
 
 def parse_enum(type_name, body, name):
+    '''Returns a :attr:`EnumSpec` instance from the input.
+    '''
     type_name, name = type_name.strip(), name.strip()
     lines = [l.strip(' ,') for l in body.splitlines() if l.strip(', ')]
     members = []
@@ -88,6 +131,10 @@ def parse_enum(type_name, body, name):
 
 
 def parse_header(filename):
+    '''Returns a list of :attr:`VariableSpec`, :attr:`FunctionSpec`,
+    :attr:`StructSpec`, :attr:`EnumSpec`, :attr:`EnumMemberSpec`, and
+    :attr:`TypeDef` instances representing the c header file.
+    '''
     with open(filename, 'rb') as fh:
         content = '\n'.join(fh.read().splitlines())
 
@@ -141,10 +188,14 @@ def parse_header(filename):
 
 
 def format_typedef(typedef):
+    '''Generates a cython typedef from a :attr:`TypeDef` instance.
+    '''
     return ['ctypedef {}'.format(typedef.body)]
 
 
 def format_enum(enum_def):
+    '''Returns a cython enum from a :attr:`EnumSpec` instance.
+    '''
     text = []
     text.append('cdef enum {}:'.format(enum_def.tp_name))
     for member in enum_def.values:
@@ -160,18 +211,24 @@ def format_enum(enum_def):
 
 
 def format_variable(variable):
+    '''Returns a cython variable from a :attr:`VariableSpec` instance.
+    '''
     if variable.count:
         return '{}{} {}[{}]'.format(*variable)
     return '{} {}{}'.format(*variable[:-1])
 
 
 def format_function(function):
+    '''Returns a cython function from a :attr:`FunctionSpec` instance.
+    '''
     args = [format_variable(arg) for arg in function.args]
     return ['{}{} {}({})'.format(
         function.type, function.pointer, function.name, ', '.join(args))]
 
 
 def format_struct(struct_def):
+    '''Returns a cython struct from a :attr:`StructSpec` instance.
+    '''
     text = []
     text.append('cdef struct {}:'.format(struct_def.tp_name))
     text.extend(
@@ -186,6 +243,8 @@ def format_struct(struct_def):
 
 
 def dump_cython(content, name, ofile):
+    '''Generates a cython pxi file from the output of :func:`parse_header`.
+    '''
     with open(ofile, 'wb') as fh:
         fh.write('cdef extern from "{}":\n'.format(name))
         for item in content:

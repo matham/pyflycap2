@@ -19,14 +19,7 @@ environment:
     BITTNESS: 64
 build_script:
 - ps: >-
-    function Check-Error
-
-    {
-      param([int]$SuccessVal = 0)
-      if ($SuccessVal -ne $LastExitCode) {
-        throw "Failed with exit code $LastExitCode"
-      }
-    }
+    iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/matham/packaging/master/check_error.ps1'))
 
     $old_path = "$env:PYTHONPATH"
 
@@ -36,13 +29,11 @@ build_script:
 
     if ($env:BITTNESS -eq "64") {
       $PYTHON_ROOT = "C:\Python$env:PYVER-x64"
-      $env:PYFLYCAP2_BIN = "$env:FLY_BUILD_DIR\flycap\x64"
+      $env:PYFLYCAP2_LIB = "$env:FLY_BUILD_DIR\flycap\x64"
     } else {
       $PYTHON_ROOT = "C:\Python$env:PYVER"
-      $env:PYFLYCAP2_BIN = "$env:FLY_BUILD_DIR\flycap\x86"
+      $env:PYFLYCAP2_LIB = "$env:FLY_BUILD_DIR\flycap\x86"
     }
-
-    $env:PYFLYCAP2_LIB = "$env:PYFLYCAP2_BIN"
 
     $env:PATH = "$PYTHON_ROOT;$PYTHON_ROOT\Scripts;$env:PATH;C:\Program Files\7-Zip"
 
@@ -100,7 +91,7 @@ build_script:
       python setup.py sdist -d "$env:DEPLOY_DIR"
       Check-Error
     }
-    $env:PYFLYCAP2_WHEEL_DEPS="$env:PYFLYCAP2_BIN"
+    $env:PYFLYCAP2_WHEEL_DEPS="$env:PYFLYCAP2_LIB"
 
     python setup.py bdist_wheel -d "$env:DEPLOY_ENV_DIR"
 
@@ -118,15 +109,7 @@ build_script:
 
 test_script:
 - ps: >-
-    function Check-Error
-
-    {
-      param([int]$SuccessVal = 0)
-      if ($SuccessVal -ne $LastExitCode) {
-        throw "Failed with exit code $LastExitCode"
-      }
-    }
-
+    iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/matham/packaging/master/check_error.ps1'))
 
     cd "$env:APPVEYOR_BUILD_FOLDER\$env:DEPLOY_ENV_DIR"
 
@@ -150,46 +133,6 @@ artifacts:
   name: wheels
 on_success:
 - ps: >-
-    function Check-Error
-
-    {
-      param([int]$SuccessVal = 0)
-      if ($SuccessVal -ne $LastExitCode) {
-        throw "Failed with exit code $LastExitCode"
-      }
-    }
-
-
-
-    if ($env:BITTNESS -eq "64" -and $env:PYVER -eq "34" -and $env:APPVEYOR_REPO_BRANCH -eq "master" -and -not $env:APPVEYOR_PULL_REQUEST_NUMBER) {
-      cd "$env:APPVEYOR_BUILD_FOLDER"
-      python -m pip install sphinx
-      Check-Error
-      cd doc
-      ./make.bat html
-      Check-Error
-      cd ..
-      mkdir "C:\docs_temp"
-      Copy-Item "doc\build\html\*" "C:\docs_temp" -recurse
-      Check-Error
-
-      git config --global credential.helper store
-      Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
-      git config --global user.email "moiein2000@gmail.com"
-      git config --global user.name "Matthew Einhorn"
-      Check-Error
-
-      git checkout --orphan gh-pages
-      Check-Error
-      git rm -rf .
-      Remove-Item -recurse * -exclude .git
-      Copy-Item "C:\docs_temp\*" .  -recurse
-      echo "" > .nojekyll
-
-      git add .
-      Check-Error
-      git commit -a -m "Docs for git-$env:APPVEYOR_REPO_COMMIT"
-      Check-Error
-      git push origin gh-pages -f
-      Check-Error
+    if ($env:BITTNESS -eq "64" -and $env:PYVER -eq "34") {
+        iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/matham/packaging/master/cpl_appveyor_gh_docs.ps1'))
     }

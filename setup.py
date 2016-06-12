@@ -80,4 +80,5 @@ setup(
         'Intended Audience :: Developers'],
     packages=['pyflycap2'],
     data_files=get_wheel_data(),
-    cmdclass=cmdclass, ext_modules=ext_modules)
+    cmdclass=cmdclass, ext_modules=ext_modules,
+    setup_requires=['cython'])

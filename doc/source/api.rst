@@ -4,7 +4,8 @@
 ####################
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
+   pyflycap2.rst
    interface.rst
    utils.rst

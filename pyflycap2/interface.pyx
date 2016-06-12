@@ -1,7 +1,11 @@
-'''
-Not implemented:
+'''Bindings
+===================
 
-fc2SetUserBuffers
+Provides the cython bindings to the corresponding c functions.
+
+Functions that are not implemented::
+
+    fc2SetUserBuffers
 '''
 
 include "includes/cy_compat.pxi"
@@ -12,6 +16,8 @@ from cpython.ref cimport PyObject
 
 import logging
 from collections import namedtuple
+
+__all__ = ('CameraContext', 'Camera', 'GUI')
 
 
 cdef void image_event_callback(fc2Image *image, void *callback_data) nogil:
@@ -25,13 +31,18 @@ cdef void image_event_callback(fc2Image *image, void *callback_data) nogil:
 TimeStamp = namedtuple(
     'TimeStamp', ['seconds', 'micro_seconds', 'cycle_seconds', 'cycle_count',
                   'cycle_offset'])
+'''A namedtuple representing a timestamp.
+'''
 
 
 cdef class CameraContext(object):
-    '''
+    '''Base controller that interface with the bus to which the :class:`Camera`
+    devices are connected.
 
-    `context_type`: str
-        Can be one of `IIDC` or `GigE`.
+    :Parameters:
+
+        `context_type`: str
+            Can be one of ``IIDC`` or ``GigE``. Defaults to ``GigE``.
     '''
 
     def __cinit__(self, context_type='GigE', **kwargs):
@@ -56,33 +67,50 @@ cdef class CameraContext(object):
             self.context = NULL
 
     def reset_1394(self, Camera camera):
+        '''Resets the 1394 bus associated with the :class:`Camera`.
+        '''
         with nogil:
             check_ret(fc2FireBusReset(self.context, &camera._guid))
 
     def get_num_cameras(self):
+        '''The number of cameras connected to the bus.
+        '''
         cdef unsigned int n = 0
         with nogil:
             check_ret(fc2GetNumOfCameras(self.context, &n))
         return n
 
     def get_num_devices(self):
+        '''The number of devices connected to the bus.
+        '''
         cdef unsigned int n = 0
         with nogil:
             check_ret(fc2GetNumOfDevices(self.context, &n))
         return n
 
     def get_device_guid_from_index(self, unsigned int index):
+        '''Returns a list of size 4 representing the GUID of the device at
+        index ``index``.
+        '''
         cdef fc2PGRGuid guid
         with nogil:
             check_ret(fc2GetDeviceFromIndex(self.context, index, &guid))
         return [guid.value[i] for i in range(4)]
 
     def rescan_bus(self):
+        '''Rescans the bus to discover new devices.
+        '''
         with nogil:
             check_ret(fc2RescanBus(self.context))
 
     def force_mac_to_ip(self, ip, subnet, gateway, mac_address=None,
                         Camera cam=None):
+        '''Sets the ip, subnet, and gateway (each a list of 4 integers) of the
+        device at the corresponding MAC address to the provided values.
+
+        Either ``mac_address`` (list of 6 integers) or a :class:`Camera` whose
+        :attr:`Camera.mac_address` will be used must be provided.
+        '''
         cdef fc2MACAddress mac
         cdef int i
         cdef fc2IPAddress _ip, _subnet, _gateway
@@ -102,10 +130,15 @@ cdef class CameraContext(object):
             check_ret(fc2ForceIPAddressToCamera(self.context, mac, _ip, _subnet, _gateway))
 
     def force_all_ips(self):
+        '''Automatically sets the ip, subnet, and gateway of all the connected GigE
+        cameras.
+        '''
         with nogil:
             check_ret(fc2ForceAllIPAddressesAutomatically())
 
     def get_gige_cams(self):
+        '''Returns a list of the serial numbers of the connected GigE cameras.
+        '''
         cdef fc2Error error
         cdef fc2CameraInfo cams[8]
         cdef fc2CameraInfo *pcams = NULL
@@ -131,12 +164,22 @@ cdef class CameraContext(object):
             return [cams[i].serialNumber for i in range(count)]
 
     def get_default_color_processing(self):
+        '''Returns the default color processing algorithm.
+
+        Can be one of ``'default'``, ``'no_processing'``, ``'NN'``, ``'edge'``,
+        ``'linear'``, ``'rigorous'``, ``'IPP'``, ``'directional'``.
+        '''
         cdef fc2ColorProcessingAlgorithm method
         with nogil:
             check_ret(fc2GetDefaultColorProcessing(&method))
         return color_algos_inv.get(method, 'unknown')
 
     def set_default_color_processing(self, algo):
+        '''Sets the default color processing algorithm.
+
+        Can be one of ``'default'``, ``'no_processing'``, ``'NN'``, ``'edge'``,
+        ``'linear'``, ``'rigorous'``, ``'IPP'``, ``'directional'``.
+        '''
         cdef fc2ColorProcessingAlgorithm default_method
         if algo not in color_algos:
             raise ValueError('"{}" not found in allowed values {}'.format(
@@ -147,12 +190,28 @@ cdef class CameraContext(object):
             check_ret(fc2SetDefaultColorProcessing(default_method))
 
     def get_default_pix_fmt(self):
+        '''Returns the default pixel format for the cameras.
+
+        Can be one of ``'mono8'``, ``'yuv411'``, ``'yuv422'``, ``'yuv444'``,
+        ``'rgb8'``, ``'mono16'``, ``'rgb16'``, ``'s_mono16'``, ``'s_rgb16'``,
+        ``'raw8'``, ``'raw16'``, ``'mono12'``, ``'raw12'``, ``'bgr'``,
+        ``'bgru'``, ``'rgb'``, ``'rgbu'``, ``'bgr16'``, ``'bgru16'``,
+        ``'yuv422_jpeg'``.
+        '''
         cdef fc2PixelFormat fmt
         with nogil:
             check_ret(fc2GetDefaultOutputFormat(&fmt))
         return pixel_fmts_inv.get(fmt, 'unknown')
 
     def set_default_pix_fmt(self, fmt):
+        '''Sets the default pixel format for the cameras.
+
+        Can be one of ``'mono8'``, ``'yuv411'``, ``'yuv422'``, ``'yuv444'``,
+        ``'rgb8'``, ``'mono16'``, ``'rgb16'``, ``'s_mono16'``, ``'s_rgb16'``,
+        ``'raw8'``, ``'raw16'``, ``'mono12'``, ``'raw12'``, ``'bgr'``,
+        ``'bgru'``, ``'rgb'``, ``'rgbu'``, ``'bgr16'``, ``'bgru16'``,
+        ``'yuv422_jpeg'``.
+        '''
         cdef fc2PixelFormat format
         if fmt not in pixel_fmts:
             raise ValueError('"{}" not found in allowed values {}'.format(
@@ -163,6 +222,14 @@ cdef class CameraContext(object):
             check_ret(fc2SetDefaultOutputFormat(format))
 
     def get_bpp(self, fmt):
+        '''Returns the number of bits per pixel for the given format.
+
+        ``fmt`` can be one of ``'mono8'``, ``'yuv411'``, ``'yuv422'``, ``'yuv444'``,
+        ``'rgb8'``, ``'mono16'``, ``'rgb16'``, ``'s_mono16'``, ``'s_rgb16'``,
+        ``'raw8'``, ``'raw16'``, ``'mono12'``, ``'raw12'``, ``'bgr'``,
+        ``'bgru'``, ``'rgb'``, ``'rgbu'``, ``'bgr16'``, ``'bgru16'``,
+        ``'yuv422_jpeg'``.
+        '''
         cdef fc2PixelFormat format
         cdef unsigned int bpp
 
@@ -176,6 +243,8 @@ cdef class CameraContext(object):
         return bpp
 
     def cycle_time(self):
+        '''Returns the current timestamp, as a :attr:`TimeStamp`, of the bus.
+        '''
         cdef fc2TimeStamp t
         with nogil:
             check_ret(fc2GetCycleTime(self.context, &t))
@@ -184,6 +253,24 @@ cdef class CameraContext(object):
 
 
 cdef class Camera(CameraContext):
+    '''Represents a Point Gray camera connected on the bus.
+
+    Each :class:`Camera` instance derives from :class:`CameraContext` since each
+    camera requires a controller.
+
+    At least one of the parameters must be provided.
+
+    :Parameters:
+
+        `guid`: list
+            A list of size 4 representing the GUID of the camera. Can be None (default).
+        `index`: int
+            The index of the camera on the bus. Can be None (default).
+        `ip`: list
+            A list of size 4 representing the IP of the camera. Can be None (default).
+        `serial`: int
+            The serial number of the camera on the bus. Can be None (default).
+    '''
 
     def __cinit__(self, guid=None, index=None, ip=None, serial=None, **kwargs):
         cdef int i = 0
@@ -250,12 +337,17 @@ cdef class Camera(CameraContext):
             fc2DestroyImage(&self.image)
 
     def is_controlable(self):
+        '''Returns whether the camera is controllable by the controller.
+        '''
         cdef BOOL controlable = 0
         with nogil:
             check_ret(fc2IsCameraControlable(self.context, &self._guid, &controlable))
         return bool(controlable)
 
     def set_drop_mode(self, int drop=True):
+        '''Sets whether frames should be dropped or buffered and sent later when
+        not retrieved quickly enough. ``drop`` defaults to True.
+        '''
         cdef fc2Config config
         with nogil:
             check_ret(fc2GetConfiguration(self.context, &config))
@@ -287,6 +379,10 @@ cdef class Camera(CameraContext):
         return video_modes[val], frame_rates[rate]
 
     def check_video_mode(self, width, height, fmt, rate):
+        '''Checks whether the input parameters are supported.
+
+        Allowed values are listed in :meth:`set_video_mode`.
+        '''
         cdef fc2VideoMode mode
         cdef fc2FrameRate _rate
         cdef BOOL supported = 0
@@ -296,6 +392,23 @@ cdef class Camera(CameraContext):
         return bool(supported)
 
     def set_video_mode(self, width, height, fmt, rate):
+        '''Sets the camera to the input parameter values.
+
+        ``width``, ``height`` is the frame sizes. ``fmt`` is the pixel format.
+        Allowed values are ``'160x120 yuv444'``, ``'320x240 yuv422'``,
+        ``'640x480 yuv411'``, ``'640x480 yuv422'``, ``'640x480 rgb'``,
+        ``'640x480 y8'``, ``'640x480 y16'``, ``'800x600 yuv422'``,
+        ``'800x600 rgb'``, ``'800x600 y8'``, ``'800x600 y16'``,
+        ``'1024x768 yuv422'``, ``'1024x768 rgb'``, ``'1024x768 y8'``,
+        ``'1024x768 y16'``, ``'1280x960 yuv422'``, ``'1280x960 rgb'``,
+        ``'1280x960 y8'``, ``'1280x960 y16'``, ``'1600x1200 yuv422'``,
+        ``'1600x1200 rgb'``, ``'1600x1200 y8'``, ``'1600x1200 y16'``.
+
+        A fmt of ``'fmt7'`` doesn't have a preset frame size.
+
+        ``rate`` can be one of ``1.875``, ``3.75``, ``7.5``, ``15``, ``30``,
+        ``60``, ``120``, ``240``. A rate of ``'fmt7'`` doesn't have a preset frame rate.
+        '''
         cdef fc2VideoMode mode
         cdef fc2FrameRate _rate
         mode, _rate = self._convert_mode_args(width, height, fmt, rate)
@@ -303,6 +416,10 @@ cdef class Camera(CameraContext):
             check_ret(fc2SetVideoModeAndFrameRate(self.context, mode, _rate))
 
     def get_video_mode(self):
+        '''Returns a 4 tuple of (width, height, pixel_fomrat, rate).
+
+        Values are similar to those listed in :meth:`set_video_mode`.
+        '''
         cdef fc2VideoMode _mode = FC2_VIDEOMODE_FORMAT7
         cdef fc2FrameRate _rate = FC2_FRAMERATE_FORMAT7
         with nogil:
@@ -324,6 +441,16 @@ cdef class Camera(CameraContext):
         return int(w), int(h), fmt, rate
 
     def get_fmt7_specs(self):
+        '''Returns the specs of the fmt7 configuration.
+
+        The returned value is a dict whose keys are its modes and whose values
+        is each a dict describing the mode. The keys of the individual dicts are
+
+        ``'max_width'``, ``'max_height'``, ``'h_offset_step'``,
+        ``'v_offset_step'``, ``'h_image_step'``, ``'v_image_step'``,
+        ``'pix_fmt_bit_field'``, ``'vender_pix_fmt_bit_field'``, ``'packet_size'``,
+        ``'min_packet_size'``, ``'max_packet_size'``, ``'percentage'``.
+        '''
         cdef BOOL supported
         cdef fc2Mode mode
         cdef fc2Format7Info info
@@ -338,7 +465,8 @@ cdef class Camera(CameraContext):
             if not supported:
                 continue
             modes[<int>mode] = {
-                'max_width': info.maxWidth, 'max_height': info.maxHeight,
+                'max_width': info.maxWidth,
+                'max_height': info.maxHeight,
                 'h_offset_step': info.offsetHStepSize,
                 'v_offset_step': info.offsetVStepSize,
                 'h_image_step': info.imageHStepSize,
@@ -353,6 +481,9 @@ cdef class Camera(CameraContext):
         return modes
 
     def validate_fmt7_specs(self, mode, offset_x, offset_y, width, height, fmt):
+        '''Validates the fmt7 configuration for the mode. Similar to :meth:`get_fmt7_specs`
+        and :meth:`get_fmt7_config`.
+        '''
         cdef fc2Format7ImageSettings settings
         cdef BOOL valid
         cdef fc2Format7PacketInfo packet
@@ -371,6 +502,12 @@ cdef class Camera(CameraContext):
                 int(settings.maxBytesPerPacket), int(settings.unitBytesPerPacket))
 
     def get_fmt7_config(self):
+        '''Returns a 3-tuple of the current fmt7 config.
+
+        The tuple is ``(dict, size, percentage)``. The dict is a dict with keys
+        ``'mode'``, ``'offset_x'``, ``'offset_y'``, ``'width'``, ``'height'``,
+        ``'fmt'``.
+        '''
         cdef fc2Format7ImageSettings settings
         cdef unsigned int size
         cdef float percentage
@@ -385,6 +522,8 @@ cdef class Camera(CameraContext):
 
     def set_fmt7_config(self, mode, offset_x, offset_y, width, height, fmt,
                         packet_size=None, packet_percentage=None):
+        '''Similar to :meth:`get_fmt7_config`.
+        '''
         cdef fc2Format7ImageSettings settings
         cdef float packet_f
         cdef unsigned int packet_ui
@@ -408,6 +547,8 @@ cdef class Camera(CameraContext):
                 check_ret(fc2SetFormat7Configuration(self.context, &settings, packet_f))
 
     def verify_gige_mode(self, mode):
+        '''Checks if the GigE camera mode is supported.
+        '''
         cdef fc2Mode fcmode
         cdef BOOL supported = 0
         if mode >= <int>FC2_NUM_MODES or mode < <int>FC2_MODE_0:
@@ -419,12 +560,16 @@ cdef class Camera(CameraContext):
         return bool(supported)
 
     def get_gige_mode(self):
+        '''Gets the current GigE camera mode.
+        '''
         cdef fc2Mode mode
         with nogil:
             check_ret(fc2GetGigEImagingMode(self.context, &mode))
         return <int>mode
 
     def set_gige_mode(self, mode):
+        '''Sets the GigE camera mode.
+        '''
         cdef fc2Mode fcmode
         if mode >= <int>FC2_NUM_MODES or mode < <int>FC2_MODE_0:
             raise Exception('Unrecognized mode {}'.format(mode))
@@ -434,12 +579,19 @@ cdef class Camera(CameraContext):
             check_ret(fc2SetGigEImagingMode(self.context, fcmode))
 
     def get_gige_specs(self):
+        '''Gets the specs of the GigE camera.
+
+        Returns a dict whose keys are ``'max_width'``, ``'max_height'``,
+        ``'h_offset_step'``, ``'v_offset_step'``, ``'h_image_step'``,
+        ``'v_image_step'``, ``'pix_fmt_bit_field'``, ``'vender_pix_fmt_bit_field'``.
+        '''
         cdef fc2GigEImageSettingsInfo info
 
         with nogil:
             check_ret(fc2GetGigEImageSettingsInfo(self.context, &info))
         return {
-            'max_width': info.maxWidth, 'max_height': info.maxHeight,
+            'max_width': info.maxWidth,
+            'max_height': info.maxHeight,
             'h_offset_step': info.offsetHStepSize,
             'v_offset_step': info.offsetVStepSize,
             'h_image_step': info.imageHStepSize,
@@ -449,6 +601,11 @@ cdef class Camera(CameraContext):
         }
 
     def get_gige_config(self):
+        '''Returns the current GigE configuration.
+
+        Returns a dict whose keys are ``'offset_x'``, ``'offset_y'``,
+        ``'width'``, ``'height'``, ``'fmt'``.
+        '''
         cdef fc2GigEImageSettings settings
 
         with nogil:
@@ -459,6 +616,8 @@ cdef class Camera(CameraContext):
                  'fmt': pixel_fmts_inv.get(settings.pixelFormat, 'unknown')}
 
     def set_gige_config(self, offset_x, offset_y, width, height, fmt):
+        '''Sets the GigE configuration. Similar to :meth:`get_gige_config`.
+        '''
         cdef fc2GigEImageSettings settings
         if fmt not in pixel_fmts:
             raise Exception('{} not found in {}'.format(fmt, ', '.join(pixel_fmts.keys())))
@@ -472,6 +631,9 @@ cdef class Camera(CameraContext):
             check_ret(fc2SetGigEImageSettings(self.context, &settings))
 
     def get_gige_packet_config(self):
+        '''Returns a dict with the bus video packet config. Its keys are
+        ``'resend'``, ``'resend_timeout'``, ``'max_resend_packets'``.
+        '''
         cdef fc2GigEConfig settings
         with nogil:
             check_ret(fc2GetGigEConfig(self.context, &settings))
@@ -480,6 +642,8 @@ cdef class Camera(CameraContext):
                 'max_resend_packets': settings.maxPacketsToResend}
 
     def set_gige_packet_config(self, resend, resend_timeout, max_resend_packets):
+        '''Sets the bus video packet config. Similar to :meth:`get_gige_packet_config`.
+        '''
         cdef fc2GigEConfig settings
         settings.enablePacketResend = resend
         settings.timeoutForPacketResend = int(resend_timeout)
@@ -488,36 +652,51 @@ cdef class Camera(CameraContext):
             check_ret(fc2SetGigEConfig(self.context, &settings))
 
     def get_gige_binning(self):
+        '''Returns a 2-tuple of the horizontal and vertical pixel binning.
+        '''
         cdef unsigned int hvalue, vvalue
         with nogil:
             check_ret(fc2GetGigEImageBinningSettings(self.context, &hvalue, &vvalue))
         return hvalue, vvalue
 
     def set_gige_binning(self, unsigned int horizontal, unsigned int vertical):
+        '''Sets the horizontal and vertical pixel binning.
+        '''
         with nogil:
             check_ret(fc2SetGigEImageBinningSettings(self.context, horizontal, vertical))
 
     def get_gige_num_streams(self):
+        '''Gets the number of stream for the camera.
+        '''
         cdef unsigned int value
         with nogil:
             check_ret(fc2GetNumStreamChannels(self.context, &value))
         return value
 
     def get_gige_stream_config(self, unsigned int chan):
+        '''Returns a dict with the with information about the channel.
+
+        Its keys are ``'net_index'``, ``'host_post'``, ``'frag'``,
+        ``'packet_size'``, ``'delay'``, ``'dest_ip'``, ``'src_port'``.
+        '''
         cdef fc2GigEStreamChannel config
         cdef int i
         with nogil:
             check_ret(fc2GetGigEStreamChannelInfo(self.context, chan, &config))
         return {
             'net_index': config.networkInterfaceIndex,
-            'host_post': config.hostPost, 'frag': bool(config.doNotFragment),
-            'packet_size': config.packetSize, 'delay': config.interPacketDelay,
+            'host_post': config.hostPost,
+            'frag': bool(config.doNotFragment),
+            'packet_size': config.packetSize,
+            'delay': config.interPacketDelay,
             'dest_ip': [config.destinationIpAddress.octets[i] for i in range(4)],
             'src_port': config.sourcePort}
 
     def set_gige_stream_config(
             self, unsigned int chan, net_index, host_post, frag, packet_size, delay,
             dest_ip, src_port):
+        '''Sets the stream configuration. Similar to :meth:`get_gige_stream_config`.
+        '''
         cdef int i
         cdef fc2GigEStreamChannel config
 
@@ -535,6 +714,8 @@ cdef class Camera(CameraContext):
             check_ret(fc2SetGigEStreamChannelInfo(self.context, chan, &config))
 
     def connect(self):
+        '''Connects the camera represented by the instance.
+        '''
         if not self.connected:
             with nogil:
                 check_ret(fc2CreateImage(&self.image))
@@ -542,6 +723,8 @@ cdef class Camera(CameraContext):
             self.connected = True
 
     def disconnect(self):
+        '''Disconnects the camera represented by the instance.
+        '''
         if self.connected:
             with nogil:
                 check_ret(fc2Disconnect(self.context))
@@ -552,10 +735,16 @@ cdef class Camera(CameraContext):
         pass
 
     def start_capture(self):
+        '''Sets the camera to start capturing and acquiring frames.
+        '''
         with nogil:
             check_ret(fc2StartCapture(self.context))
 
     def start_capture_sync(self, other_cams):
+        '''Sets the camera to start capturing in sync with all the :class:`Camera`
+        instances listed in ``other_cams``. All these cameras will start
+        capturing simultaneously.
+        '''
         cdef list cams = [self] + list(other_cams)
         cdef unsigned int n = len(cams)
         cdef fc2Context *contexts = NULL
@@ -575,14 +764,25 @@ cdef class Camera(CameraContext):
             free(contexts)
 
     def stop_capture(self):
+        '''Stops the camera from capturing frames.
+        '''
         with nogil:
             check_ret(fc2StopCapture(self.context))
 
     def read_next_image(self):
+        '''Requests that the next acquired frame be read fro the bus.
+        '''
         with nogil:
             check_ret(fc2RetrieveBuffer(self.context, &self.image))
 
     cpdef get_current_image_config(self):
+        '''Returns the configuration parameters of the last read image.
+
+        Its keys are ``'rows'``, ``'cols'``, ``'stride'``, ``'data_size'``,
+        ``'received_size'``, ``'pix_fmt'``, ``'bayer_fmt'``, ``'ts'``.
+
+        The value of ``'ts'`` is a :attr:`TimeStamp` instance.
+        '''
         cdef fc2TimeStamp t
         with nogil:
             t = fc2GetImageTimeStamp(&self.image)
@@ -590,8 +790,10 @@ cdef class Camera(CameraContext):
             t.seconds, t.microSeconds, t.cycleSeconds, t.cycleCount, t.cycleOffset)
 
         return {
-            'rows': self.image.rows, 'cols': self.image.cols,
-            'stride': self.image.stride, 'data_size': self.image.dataSize,
+            'rows': self.image.rows,
+            'cols': self.image.cols,
+            'stride': self.image.stride,
+            'data_size': self.image.dataSize,
             'received_size': self.image.receivedDataSize,
             'pix_fmt': pixel_fmts_inv.get(self.image.format, 'unknown'),
             'bayer_fmt': bayer_fmts_inv.get(self.image.bayerFormat, 'unknown'),
@@ -599,6 +801,11 @@ cdef class Camera(CameraContext):
         }
 
     cpdef get_current_image(self):
+        '''Returns the last read frame.
+
+        It's a ``bytearray`` of size ``data_size`` as returned by
+        :meth:`get_current_image_config`.
+        '''
         cdef object buffer = bytearray('\0') * self.image.dataSize
         cdef unsigned char *dest = buffer
         cdef unsigned char *src = NULL
@@ -612,6 +819,12 @@ cdef class Camera(CameraContext):
         return res
 
     def save_current_image(self, filename, ext='auto'):
+        '''Saves the last image read to disk.
+
+        ``ext`` is the extension type, defaults to ``'auto'``. Can be one of
+        ``'auto'``, ``'pgm'``, ``'ppm'``, ``'bmp'``, ``'jpeg'``, ``'jpeg2000'``,
+        ``'tiff'``, ``'png'``, ``'raw'``.
+        '''
         cdef bytes fname = filename if isinstance(filename, bytes) else filename.encode('utf8')
         cdef char *cname = fname
         cdef fc2ImageFileFormat format
@@ -625,6 +838,10 @@ cdef class Camera(CameraContext):
 
 
 cdef class GUI(object):
+    '''Controls a GUI for configuring and selecting Point Gray cameras.
+
+    There are two GUI options, :meth:`show` and :meth:`show_selection`.
+    '''
 
     def __cinit__(self, **kwargs):
         self.gui_context = NULL
@@ -638,30 +855,50 @@ cdef class GUI(object):
             self.gui_context = NULL
 
     def connect_camera(self, Camera cam):
+        '''Connects the GUI to the provided :class:`Camera`.
+        '''
         with nogil:
             fc2GUIConnect(self.gui_context, cam.context)
 
     def disconnect_camera(self):
+        '''Disconnects the :class:`Camera` connected with :meth:`connect_camera`.
+        '''
         with nogil:
             fc2GUIDisconnect(self.gui_context)
 
     def show(self):
+        '''Show the GUI for the :class:`Camera` connected with :meth:`connect_camera`.
+
+        Currently this method may crash or freeze. As of 2016 it is a confirmed bug with
+        the Point Gray C library.
+        '''
         if not self.is_gui_visible():
             with nogil:
                 fc2Show(self.gui_context)
 
     def hide(self):
+        '''Hides the GUI shown with :meth:`show`.
+        '''
         if self.is_gui_visible():
             with nogil:
                 fc2Hide(self.gui_context)
 
     def is_gui_visible(self):
+        '''Returns whether the GUI is currently shown with :meth:`show`.
+        '''
         cdef int visible
         with nogil:
             visible = fc2IsVisible(self.gui_context)
         return bool(visible)
 
     def show_selection(self):
+        '''Shows a non-specific GUI from which any of the cameras can be selected and
+        configured.
+
+        Returns a 2-tuple of ``(selected, GUIDs)``.
+        ``Selected`` is True if OK was pressed or False if it was canceled.
+        ``GUIDs`` is a list of the GUIDs of all the selected cameras.
+        '''
         cdef BOOL selected = 0
         cdef unsigned int s = 16
         cdef fc2PGRGuid guid[16]

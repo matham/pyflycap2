@@ -1,45 +1,55 @@
-# pyflycap2
-Cython bindings to Point Gray FlyCapture2
+Project that provides python bindings for the FlyCapture2 library
+by Point Gray.
+
+For more information: http://matham.github.io/pyflycap2/index.html
+
+To install: http://matham.github.io/pyflycap2/installation.html
+
+.. image:: https://ci.appveyor.com/api/projects/status/w43tdnppyqrhvs4x/branch/master?svg=true
+    :target: https://ci.appveyor.com/project/matham/pyflycap2/branch/master
+    :alt: Appveyor status
+
+.. image:: https://img.shields.io/pypi/pyversions/pyflycap2.svg
+    :target: https://pypi.python.org/pypi/pyflycap2/
+    :alt: Supported Python versions
+
+.. image:: https://img.shields.io/pypi/v/pyflycap2.svg
+    :target: https://pypi.python.org/pypi/pyflycap2/
+    :alt: Latest Version on PyPI
+
+.. warning::
+
+    Due to the licensing restrictions, Fly Capture dlls cannot be redistributed,
+    therefore the wheels only include the compiled bindings. To use, the Fly Capture
+    dlls must be provided independently, e.g. by placing them on the system PATH.
+
+Examples
+=============
+
+Listing GigE cams:
+
+.. code-block:: python
+
+    cc = CameraContext()
+    cc.rescan_bus()
+    print(cc.get_gige_cams())  # prints list of serial numbers.
 
 
-# Installing
+Configuring with the GUI:
 
-This library provides Cython bindings to FlyCapture2 which can be called form
-Python. That means that we need to compile the Cython code and link with
-the FlyCapture2 dlls. This guide describes how to use MinGW gcc as the
-compiler.
+.. code-block:: python
 
-* Locate the `FlyCapture2GUI_C.dll`, `FlyCapture2_C.dll`, and `libiomp5md.dll` dlls.
-  The dlls are typically under `Point Grey Research\FlyCapture2\bin64` or just
-  `bin` for a 32 bit installation. The `Point Grey Research` directory
-  is typically under Program Files.
+    gui = GUI()
+    gui.show_selection()
 
-* Move the files to location that is on the path so that it's accessible
- by Windows. Then cd to that directory and run the following commands:
 
- ```
-  gendef FlyCapture2_C_v110.dll
-  gendef FlyCapture2GUI_C_v110.dll
-  dlltool --dllname FlyCapture2_C_v110.dll --def FlyCapture2_C_v110.def --output-lib libFlyCapture2_C_v110.dll.a
-  dlltool --dllname FlyCapture2GUI_C_v110.dll --def FlyCapture2GUI_C_v110.def --output-lib libFlyCapture2GUI_C_v110.dll.a
- ```
-  This will generate the library files required by mingw to link with them.
+Reading images from a camera:
 
-* Now, in your environment set the environment variable `FLYCAP2_INCLUDE`
-  to the full path where the include files are (typically under
-  `Point Grey Research\FlyCapture2\include`), and set
-  `FLYCAP2_BIN` to the folder containing dll files and the generated libx.dll.a
-  files from above. E.g.
+.. code-block:: python
 
-  ```
-  export FLYCAP2_INCLUDE="E:\Point Grey Research\FlyCapture2\include"
-  export FLYCAP2_BIN="E:\Point Grey Research\FlyCapture2\bin64"
-  ```
-
-* Now we're ready to compile. CD to the pyflycap2 directory
-  such that Makefile is in your path and just execute `make`. This will
-  compile pyflycap2.
-
-* FInally, assuming pyflycap2 is properly installed, you should be
-  to import pyflycap2, as long as the dlls are still on the Windows path.
-  Once compiled, only the dlls are required.
+    c = Camera(serial=cam_serial)
+    c.connect()
+    c.start_capture()
+    c.read_next_image()
+    image = c.get_current_image()  # last image
+    c.disconnect()
