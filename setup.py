@@ -29,7 +29,10 @@ def get_wheel_data():
         )
     return data
 
-libraries = ['FlyCapture2_C_v110', 'FlyCapture2GUI_C_v110']
+if sys.platform in ('win32', 'cygwin'):
+    libraries = ['FlyCapture2_C_v110', 'FlyCapture2GUI_C_v110']
+else:
+    libraries = ['flycapture', 'flycapture-c']
 include_dirs = []
 library_dirs = []
 
