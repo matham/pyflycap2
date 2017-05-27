@@ -632,22 +632,22 @@ cdef class Camera(CameraContext):
 
     def get_gige_packet_config(self):
         '''Returns a dict with the bus video packet config. Its keys are
-        ``'resend'``, ``'resend_timeout'``, ``'max_resend_packets'``.
+        ``'resend'``, ``'timeout_retries'``, ``'timeout'``.
         '''
         cdef fc2GigEConfig settings
         with nogil:
             check_ret(fc2GetGigEConfig(self.context, &settings))
         return {'resend': bool(settings.enablePacketResend),
-                'resend_timeout': settings.timeoutForPacketResend,
-                'max_resend_packets': settings.maxPacketsToResend}
+                'timeout_retries': settings.registerTimeoutRetries,
+                'timeout': settings.registerTimeout}
 
-    def set_gige_packet_config(self, resend, resend_timeout, max_resend_packets):
+    def set_gige_packet_config(self, resend, timeout, timeout_retries):
         '''Sets the bus video packet config. Similar to :meth:`get_gige_packet_config`.
         '''
         cdef fc2GigEConfig settings
         settings.enablePacketResend = resend
-        settings.timeoutForPacketResend = int(resend_timeout)
-        settings.maxPacketsToResend = int(max_resend_packets)
+        settings.registerTimeoutRetries = int(timeout_retries)
+        settings.registerTimeout = int(timeout)
         with nogil:
             check_ret(fc2SetGigEConfig(self.context, &settings))
 
@@ -676,7 +676,7 @@ cdef class Camera(CameraContext):
     def get_gige_stream_config(self, unsigned int chan):
         '''Returns a dict with the with information about the channel.
 
-        Its keys are ``'net_index'``, ``'host_post'``, ``'frag'``,
+        Its keys are ``'net_index'``, ``'host_port'``, ``'frag'``,
         ``'packet_size'``, ``'delay'``, ``'dest_ip'``, ``'src_port'``.
         '''
         cdef fc2GigEStreamChannel config
@@ -685,7 +685,7 @@ cdef class Camera(CameraContext):
             check_ret(fc2GetGigEStreamChannelInfo(self.context, chan, &config))
         return {
             'net_index': config.networkInterfaceIndex,
-            'host_post': config.hostPost,
+            'host_port': config.hostPort,
             'frag': bool(config.doNotFragment),
             'packet_size': config.packetSize,
             'delay': config.interPacketDelay,
@@ -693,7 +693,7 @@ cdef class Camera(CameraContext):
             'src_port': config.sourcePort}
 
     def set_gige_stream_config(
-            self, unsigned int chan, net_index, host_post, frag, packet_size, delay,
+            self, unsigned int chan, net_index, host_port, frag, packet_size, delay,
             dest_ip, src_port):
         '''Sets the stream configuration. Similar to :meth:`get_gige_stream_config`.
         '''
@@ -701,7 +701,7 @@ cdef class Camera(CameraContext):
         cdef fc2GigEStreamChannel config
 
         config.networkInterfaceIndex = net_index
-        config.hostPost = host_post
+        config.hostPort = host_port
         config.doNotFragment = frag
         config.packetSize = packet_size
         config.interPacketDelay = delay

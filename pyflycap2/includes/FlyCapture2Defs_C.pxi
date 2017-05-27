@@ -521,7 +521,7 @@ cdef extern from "C/FlyCapture2Defs_C.h" nogil:
 
     cdef struct _fc2GigEStreamChannel:
         unsigned int networkInterfaceIndex
-        unsigned int hostPost
+        unsigned int hostPort
         BOOL doNotFragment
         unsigned int packetSize
         unsigned int interPacketDelay
@@ -532,8 +532,8 @@ cdef extern from "C/FlyCapture2Defs_C.h" nogil:
 
     cdef struct _fc2GigEConfig:
         BOOL enablePacketResend
-        unsigned int timeoutForPacketResend
-        unsigned int maxPacketsToResend
+        unsigned int registerTimeoutRetries
+        unsigned int registerTimeout
         unsigned int reserved[8]
     ctypedef _fc2GigEConfig fc2GigEConfig
 
