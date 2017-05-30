@@ -91,3 +91,6 @@ Compiling
 * Finally, assuming pyflycap2 is properly installed, you should be
   to import pyflycap2, as long as the dlls (.so) are still on the PATH.
   Once compiled, only the dlls (.so) are required.
+* On linux, the file ``/usr/bin/FlyCapture2GUI_GTK.glade`` needs to be
+  copied to the currenty directory if any of the GUI functions are
+  used, otherwise an error will be raised and the GUI will not launch.
