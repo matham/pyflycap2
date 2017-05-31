@@ -806,7 +806,7 @@ cdef class Camera(CameraContext):
         It's a ``bytearray`` of size ``data_size`` as returned by
         :meth:`get_current_image_config`.
         '''
-        cdef object buffer = bytearray('\0') * self.image.dataSize
+        cdef object buffer = bytearray(b'\0') * self.image.dataSize
         cdef unsigned char *dest = buffer
         cdef unsigned char *src = NULL
         cdef dict res = self.get_current_image_config()
