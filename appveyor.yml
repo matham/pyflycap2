@@ -67,7 +67,7 @@ build_script:
 
     cd "$env:FLY_BUILD_DIR"
 
-    Invoke-WebRequest "https://www.dropbox.com/s/q9sk6joxxtv1cgj/flycap.7z?dl=1" -OutFile "flycap.7z"
+    Invoke-WebRequest "https://www.dropbox.com/s/3wk9w3xem1mp1mv/flycap.7z?dl=1" -OutFile "flycap.7z"
 
     Check-Error
 
