@@ -59,7 +59,7 @@ build_script:
 
     Check-Error
 
-    pip install cython nose
+    pip install cython nose six
 
     Check-Error
 
