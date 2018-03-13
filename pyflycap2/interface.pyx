@@ -35,6 +35,14 @@ TimeStamp = namedtuple(
 '''
 
 
+cdef unsigned int reverse_bits(unsigned int n) nogil:
+    cdef unsigned int x = 0, i = 31
+    while n:
+        x |= (n & 1) << i
+        n >>= 1
+        i -= 1
+    return x
+
 cdef class CameraContext(object):
     '''Base controller that interface with the bus to which the :class:`Camera`
     devices are connected.
@@ -278,6 +286,7 @@ cdef class Camera(CameraContext):
         self.index = <unsigned int>-1
         self.ip = self.subnet = self.gateway = self.mac_address = None
         self.connected = False
+        self.setting_names = sorted(setting_csr_base_reg.keys())
 
         if guid is not None:
             for i in range(4):
@@ -335,6 +344,136 @@ cdef class Camera(CameraContext):
     def __dealloc__(self):
         with nogil:
             fc2DestroyImage(&self.image)
+
+    def set_register(self, unsigned int address, unsigned int value):
+        '''Writes ``value`` to register ``address``.
+        '''
+        with nogil:
+            check_ret(fc2WriteRegister(self.context, address, value))
+
+    def get_register(self, unsigned int address):
+        '''Returns the current value from register ``address``.
+        '''
+        cdef unsigned int value = 0
+        with nogil:
+            check_ret(fc2ReadRegister(self.context, address, &value))
+        return value
+
+    def get_cam_abs_setting_range(self, setting):
+        '''Returns the absolute (min, max) values of the setting.
+        '''
+        if setting not in setting_csr_base_reg:
+            raise ValueError('setting "{}" not recognized'.format(setting))
+
+        cdef unsigned int offset = self.get_register(setting_csr_base_reg[setting])
+        offset *= 4
+        offset &= 0xFFFFF
+
+        cdef unsigned int min = self.get_register(offset)
+        cdef unsigned int max = self.get_register(offset + 0x4)
+
+        return (<float *>&min)[0], (<float *>&max)[0]
+
+    def get_cam_abs_setting_value(self, setting):
+        '''Returns the absolute value of the setting.
+        '''
+        if setting not in setting_csr_base_reg:
+            raise ValueError('setting "{}" not recognized'.format(setting))
+
+        cdef unsigned int offset = self.get_register(setting_csr_base_reg[setting])
+        offset *= 4
+        offset &= 0xFFFFF
+
+        cdef unsigned int value = self.get_register(offset + 0x8)
+        return (<float *>&value)[0]
+
+    def set_cam_abs_setting_value(self, setting, value):
+        '''Returns the absolute value of the setting.
+        '''
+        if setting not in setting_csr_base_reg:
+            raise ValueError('setting "{}" not recognized'.format(setting))
+
+        mn, mx = self.get_cam_abs_setting_range(setting)
+        cdef float val = max(min(value, mx), mn)
+
+        cdef unsigned int offset = self.get_register(setting_csr_base_reg[setting])
+        offset *= 4
+        offset &= 0xFFFFF
+
+        self.set_register(offset + 0x8, (<unsigned int *>&val)[0])
+
+    def get_cam_setting_abilities(self, setting):
+        if setting not in setting_inq_reg:
+            raise ValueError('setting "{}" not recognized'.format(setting))
+
+        cdef unsigned int config = reverse_bits(self.get_register(setting_inq_reg[setting]))
+        cdef dict options = {}
+        for name, bit in {
+                'present': 0, 'abs': 1, 'one_push': 3,
+                'read': 4, 'controllable': 5, 'auto': 6, 'manual': 7}.items():
+            options[name] = bool((1 << bit) & config)
+
+        options['min'] = ((0xFFF << 8) & config) >> 8
+        options['max'] = ((0xFFF << 20) & config) >> 20
+        return options
+
+    def get_cam_setting_option_values(self, setting):
+        '''Gets the setting options.
+        '''
+        if setting not in setting_value_reg_all:
+            raise ValueError('setting "{}" not recognized'.format(setting))
+
+        cdef unsigned int config = reverse_bits(self.get_register(setting_value_reg_all[setting]))
+        cdef dict options = {}
+        for name, bit in {
+                'present': 0, 'abs': 1, 'one_push': 5,
+                'controllable': 6, 'auto': 7}.items():
+            options[name] = bool((1 << bit) & config)
+
+        options['relative_value'] = ((0xFFF << 20) & config) >> 20
+        return options
+
+    def set_cam_setting_option_values(
+            self, setting, abs=None, one_push=None, controllable=None,
+            auto=None, relative_value=None):
+        '''Sets the setting options.
+        '''
+        if setting not in setting_value_reg_all:
+            raise ValueError('setting "{}" not recognized'.format(setting))
+
+        cdef unsigned int config = reverse_bits(self.get_register(setting_value_reg_all[setting]))
+        cdef unsigned int val = 0
+
+        if abs is not None:
+            config = (config | (1 << 1)) if abs else (config & ~(1 << 1))
+        if one_push is not None:
+            config = (config | (1 << 5)) if one_push else (config & ~(1 << 5))
+        if controllable is not None:
+            config = (config | (1 << 6)) if controllable else (config & ~(1 << 6))
+        if auto is not None:
+            config = (config | (1 << 7)) if auto else (config & ~(1 << 7))
+        if relative_value is not None:
+            val = relative_value
+            config = ((val & 0xFFF) << 20) | (config & (0xFFFFFFFF >> 12))
+
+        self.set_register(setting_value_reg_all[setting], reverse_bits(config))
+
+    def get_horizontal_mirror(self):
+        '''Returns tuple of (present, state). present indicates whether  this feature
+        is available for this camera. state is True if mirroring is curently
+        on, otherwise it's False.
+        '''
+        cdef unsigned int config = reverse_bits(self.get_register(0x1054))
+        return bool((1 << 0) & config), bool((1 << 31) & config)
+
+    def set_horizontal_mirror(self, value):
+        '''Sets whether horizontal mirroring should be turned ON or OFF assuming
+        it's available.
+        '''
+        if not self.get_horizontal_mirror()[0]:
+            raise Exception('Horizontal mirroring is not available')
+
+        self.set_register(0x1054, reverse_bits(int(bool(value)) << 31))
 
     def is_controlable(self):
         '''Returns whether the camera is controllable by the controller.

@@ -57,6 +57,11 @@ GigE, or unknown.
 internal :class:`CameraContext`.
     '''
 
+    cdef public list setting_names
+    '''A list of the names of the setting, e.g. brightness that are supported by
+    point gray cameras (even if this camera doesn't support it).
+    '''
+
     cdef fc2Image image
 
     cdef image_callback(self, fc2Image *image)

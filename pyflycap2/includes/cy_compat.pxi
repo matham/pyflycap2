@@ -3,7 +3,7 @@
 cdef inline int check_ret(fc2Error ret) nogil except 1:
     if ret != FC2_ERROR_OK:
         with gil:
-            raise Exception('PyFlyCap2: {}'.format(fc2ErrorToDescription(ret)))
+            raise Exception('PyFlyCap2: {}, code: {}'.format(fc2ErrorToDescription(ret), ret))
     return 0
 
 
@@ -149,3 +149,71 @@ cdef list fc2_modes = [
     FC2_MODE_30,
     FC2_MODE_31
 ]
+
+
+cdef dict setting_csr_base_reg = {
+    'brightness': 0x700,
+    'exposure': 0x704,
+    'sharpness': 0x708,
+    'hue': 0x710,
+    'saturation': 0x714,
+    'gamma': 0x718,
+    'shutter': 0x71C,
+    'gain': 0x720,
+    'iris': 0x724,
+    # 'trigger_delay': 0x734,
+    'frame_rate': 0x73C,
+    'pan': 0x7C4,
+    'tilt': 0x7C8
+}
+
+
+cdef dict setting_inq_reg = {
+    'brightness': 0x500,
+    'exposure': 0x504,
+    'sharpness': 0x508,
+    'hue': 0x510,
+    'saturation': 0x514,
+    'gamma': 0x518,
+    'shutter': 0x51c,
+    'gain': 0x520,
+    'iris': 0x524,
+    'frame_rate': 0x53c,
+    'pan': 0x584,
+    'tilt': 0x588,
+
+    # these are not found in csr registers
+    # 'white_balance': 0x50c,
+    # 'focus': 0x528,
+    # 'temperature': 0x52c,
+    # 'white_shd': 0x538,
+    # 'zoom': 0x580,
+    # 'optical_filter': 0x58c
+}
+
+
+cdef dict setting_value_reg = {
+    'brightness': 0x800,
+    'sharpness': 0x808,
+    'hue': 0x810,
+    'saturation': 0x814,
+    'gamma': 0x818,
+    'gain': 0x820,
+    'iris': 0x824,
+    # 'focus': 0x828,
+    'pan': 0x884,
+    'tilt': 0x888
+}
+
+
+cdef dict setting_value_custom_reg = {
+    'frame_rate': 0x83c,
+    'exposure': 0x804,
+    # 'white_balance': 0x80c,
+    'shutter': 0x81c,
+    # 'temperature': 0x82c
+}
+
+
+cdef dict setting_value_reg_all = dict(setting_value_reg)
+setting_value_reg_all.update(setting_value_custom_reg)
