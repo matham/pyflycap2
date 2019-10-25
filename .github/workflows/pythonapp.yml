@@ -1,0 +1,113 @@
+name: Python application
+
+on: [push]
+
+jobs:
+  docs:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        python: [ '3.6', '3.7' ]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Install dependencies
+      env:
+        ZIP_PASS: ${{ secrets.ZIP_PASS }}
+      run: |
+        sudo apt update
+        sudo apt -y install libraw1394-11 libavcodec57 libavformat57 libswscale4 libswresample2 libavutil55
+        sudo apt -y install libgtkmm-2.4-1v5 libglademm-2.4-1v5 libgtkglextmm-x11-1.2-0v5 libgtkmm-2.4-dev
+        sudo apt -y install libglademm-2.4-dev libgtkglextmm-x11-1.2-dev libusb-1.0-0 wget p7zip-full
+        wget https://github.com/matham/pyflycap2/releases/download/v0.1.0/flycap.7z
+        7z x flycap.7z -p$ZIP_PASS
+
+        cd flycap/flycapture2-2.13.3.31-amd64
+        sudo dpkg -i libflycapture-2*
+        sudo dpkg -i libflycapturegui-2*
+        sudo dpkg -i libflycapturevideo-2*
+        sudo dpkg -i libflycapture-c-2*
+        sudo dpkg -i libflycapturegui-c-2*
+        sudo dpkg -i libflycapturevideo-c-2*
+        sudo dpkg -i libmultisync-2*
+        sudo dpkg -i libmultisync-c-2*
+        sudo dpkg -i flycap-2*
+        sudo dpkg -i flycapture-doc-2*
+        sudo dpkg -i updatorgui*
+        cd ../../
+
+        python3 -m pip install --upgrade pip virtualenv wheel setuptools sphinx auditwheel
+        python3 -m pip install -e .
+        python3 setup.py bdist_wheel
+        ls
+        auditwheel repair --plat manylinux2010_x86_64 dist/*.whl -w dist/
+    - uses: actions/upload-artifact@master
+      with:
+        name: py_wheel
+        path: dist
+    - name: Generate docs
+      run: |
+        cd doc
+        make html
+    - name: gh-pages upload
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master' && ${{ matrix.python }} == '3.7'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        cp -r doc/build/html ~/docs_temp
+
+        git config --global user.email "moiein2000@gmail.com"
+        git config --global user.name "Matthew Einhorn"
+        git remote rm origin || true
+        git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/matham/pyflycap2.git"
+
+        git checkout --orphan gh-pages
+        cp -r .git ~/docs_git
+        cd ..
+        rm -rf pyflycap2
+        mkdir pyflycap2
+        cd pyflycap2
+        cp -r ~/docs_git .git
+        cp -r ~/docs_temp/* .
+        touch .nojekyll
+
+        git add .
+        git commit -a -m "Docs for git-$GITHUB_SHA"
+        git push origin gh-pages -f
+
+  windows_wheels:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python: [ '3.6', '3.7' ]
+        arch: ['x64', 'x86']
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python }}
+        architecture: ${{ matrix.arch }}
+    - name: Make wheels
+      env:
+        ZIP_PASS: ${{ secrets.ZIP_PASS }}
+      run: |
+        Invoke-WebRequest "https://github.com/matham/pyflycap2/releases/download/v0.1.0/flycap.7z" -OutFile "flycap.7z"
+        7z x "flycap.7z" -p"$env:ZIP_PASS"
+        $env:PYFLYCAP2_INCLUDE = ".\flycap\include"
+        $env:PYFLYCAP2_LIB = ".\flycap\${{ matrix.arch }}"
+        $env:PYFLYCAP2_WHEEL_DEPS = ".\flycap\${{ matrix.arch }}"
+        ls $env:PYFLYCAP2_INCLUDE
+        ls $env:PYFLYCAP2_LIB
+
+        python -m pip install --upgrade pip virtualenv wheel setuptools cython
+        python -m pip install -e .
+
+        python setup.py bdist_wheel
+    - uses: actions/upload-artifact@master
+      with:
+        name: py_wheel
+        path: dist
