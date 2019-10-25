@@ -53,7 +53,7 @@ jobs:
         cd doc
         make html
     - name: gh-pages upload
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master' && ${{ matrix.python }} == '3.7'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.python == '3.7'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
