@@ -13,7 +13,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: ${{ matrix.python }}
     - name: Install dependencies
       env:
         ZIP_PASS: ${{ secrets.ZIP_PASS }}

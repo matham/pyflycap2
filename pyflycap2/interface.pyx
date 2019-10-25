@@ -1,4 +1,4 @@
-'''Bindings
+"""Bindings
 ===================
 
 Provides the cython bindings to the corresponding c functions.
@@ -6,7 +6,7 @@ Provides the cython bindings to the corresponding c functions.
 Functions that are not implemented::
 
     fc2SetUserBuffers
-'''
+"""
 
 include "includes/cy_compat.pxi"
 

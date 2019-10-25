@@ -1,80 +1,37 @@
 # -*- coding: utf-8 -*-
 
 import pyflycap2
+import sphinx_rtd_theme
+import os
+
+project = 'PyFlyCap2'
+copyright = '2015, Matthew Einhorn'
+author = 'Matthew Einhorn'
 
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
-    'sphinx.ext.coverage'
+    'sphinx.ext.coverage',
+    "sphinx_rtd_theme",
 ]
 
-html_sidebars = {
-    '**': [
-        'about.html',
-        'navigation.html',
-        'relations.html',
-        'searchbox.html',
-        'sourcelink.html'
-    ]
-}
 
-html_theme_options = {
-    'github_button': 'true',
-    'github_banner': 'true',
-    'github_user': 'matham',
-    'github_repo': 'pyflycap2'
-}
-
-# The suffix of source filenames.
-source_suffix = '.rst'
-
-# The master toctree document.
-master_doc = 'index'
-
-# General information about the project.
-project = u'PyFlyCap2'
-
-# The short X.Y version.
-version = pyflycap2.__version__
-# The full version, including alpha/beta/rc tags.
-release = pyflycap2.__version__
+# Add any paths that contain templates here, relative to this directory.
+templates_path = ['_templates']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
+# This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
-
-# The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
-# Output file base name for HTML help builder.
-htmlhelp_basename = 'PyFlyCap2doc'
-
-latex_elements = {}
-
-latex_documents = [
-  ('index', 'PyFlyCap2.tex', u'PyFlyCap2 Documentation',
-   u'Matthew Einhorn', 'manual'),
-]
-
-# One entry per manual page. List of tuples
-# (source start file, name, description, authors, manual section).
-man_pages = [
-    ('index', 'PyFlyCap2', u'PyFlyCap2 Documentation',
-     [u'Matthew Einhorn'], 1)
-]
-
-# Grouping the document tree into Texinfo files. List of tuples
-# (source start file, target name, title, author,
-#  dir menu entry, description, category)
-texinfo_documents = [
-  ('index', 'PyFlyCap2', u'PyFlyCap2 Documentation',
-   u'Matthew Einhorn', 'PyFlyCap2', 'One line description of project.',
-   'Miscellaneous'),
-]
+# Add any paths that contain custom static files (such as style sheets) here,
+# relative to this directory. They are copied after the builtin static files,
+# so a file named "default.css" will overwrite the builtin "default.css".
+html_static_path = ['_static']
 
 
 def no_namedtuple_attrib_docstring(app, what, name,

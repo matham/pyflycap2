@@ -1,4 +1,4 @@
-'''Utilities
+"""Utilities
 =============
 
 Module for extracting cython headers from the fly capture c headers.
@@ -7,7 +7,7 @@ For example::
     header = r'E:\Point Grey Research\FlyCapture2\include\FlyCapture2_C'
     content = parse_header('{}.h'.format(header))
     dump_cython(content, '{}.h'.format(header), '{}.pxi'.format(header))
-'''
+"""
 
 from re import compile, match, sub, split
 import traceback
@@ -262,6 +262,7 @@ def dump_cython(content, name, ofile):
 
             fh.write('{}\n\n'.format('\n'.join(['{}{}'.format(tab, c)
                                                 for c in code])))
+
 
 if __name__ == '__main__':
     from os.path import join

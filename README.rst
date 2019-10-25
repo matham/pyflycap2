@@ -5,17 +5,9 @@ For more information: http://matham.github.io/pyflycap2/index.html
 
 To install: http://matham.github.io/pyflycap2/installation.html
 
-.. image:: https://ci.appveyor.com/api/projects/status/w43tdnppyqrhvs4x/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/matham/pyflycap2/branch/master
-    :alt: Appveyor status
-
-.. image:: https://img.shields.io/pypi/pyversions/pyflycap2.svg
-    :target: https://pypi.python.org/pypi/pyflycap2/
-    :alt: Supported Python versions
-
-.. image:: https://img.shields.io/pypi/v/pyflycap2.svg
-    :target: https://pypi.python.org/pypi/pyflycap2/
-    :alt: Latest Version on PyPI
+.. image:: https://github.com/matham/pyflycap2/workflows/Python%20application/badge.svg
+    :target: https://github.com/matham/pyflycap2/actions
+    :alt: Github CI status
 
 .. warning::
 
@@ -30,6 +22,7 @@ Listing GigE cams:
 
 .. code-block:: python
 
+    from pyflycap2.interface import CameraContext
     cc = CameraContext()
     cc.rescan_bus()
     print(cc.get_gige_cams())  # prints list of serial numbers.
@@ -39,6 +32,7 @@ Configuring with the GUI:
 
 .. code-block:: python
 
+    from pyflycap2.interface import GUI
     gui = GUI()
     gui.show_selection()
 
@@ -47,6 +41,7 @@ Reading images from a camera:
 
 .. code-block:: python
 
+    from pyflycap2.interface import Camera
     c = Camera(serial=cam_serial)
     c.connect()
     c.start_capture()

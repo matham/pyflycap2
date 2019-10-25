@@ -1,9 +1,9 @@
-'''PyFlyCap2 Library
+"""PyFlyCap2 Library
 ====================
 
 Project that provides python bindings for the FlyCapture2 library
 by Point Gray.
-'''
+"""
 __version__ = '0.2.0.dev0'
 
 import sys

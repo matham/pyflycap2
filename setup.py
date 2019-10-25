@@ -47,7 +47,9 @@ ext_modules = [Extension(
     include_dirs=include_dirs, library_dirs=library_dirs) for src_file in mods]
 
 for e in ext_modules:
-    e.cython_directives = {"embedsignature": True}
+    e.cython_directives = {
+        "embedsignature": True, 'c_string_encoding': 'utf-8',
+        'language_level': 3}
 
 with open('README.rst') as fh:
     long_description = fh.read()

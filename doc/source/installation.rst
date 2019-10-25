@@ -7,18 +7,26 @@ Installation
 Using binary wheels
 -------------------
 
-On windows 7+, compiled PyFlyCap2 binaries can be installed for python 2.7 and 3.4+,
-on either a 32 or 64 bit system using::
+On Windows, compiled PyFlyCap2 binaries can be installed for python 3.6+,
+on either a 32 or 64 bit system. First locate the compiled wheel for the [latest
+release](https://github.com/matham/pyflycap2/releases), or a dev wheel
+by downloading the artifact from the last
+[Github action run](https://github.com/matham/pyflycap2/actions). Then
+install it using::
 
-    pip install pyflycap2
+    pip install pyflycap2_wheel_name.whl
 
 .. warning::
 
-    Due to the licensing restrictions, Fly Capture dlls cannot be redistributed,
-    therefore the wheels only include the compiled bindings. To use, the Fly Capture
-    dlls must be provided independently, e.g. by placing them on the system PATH.
+    On linux, the compiled wheel doesn't contain any flycapture2 library binaries,
+    so flycapture should be installed before using pyflycap2 by following the
+    instructions on the point gray [website](https://www.flir.com/products/flycapture-sdk).
 
-    On Windows, the required dlls are::
+    E.g. on ubuntu, you should download flycapture2, extract it and install with
+    ``install_flycapture.sh``. That will put the required ``.so`` files on the path.
+
+    On Windows, the following dlls are required, but are **already included** in the wheel.
+    Only provide them if manually compiling pyflycap2::
 
         FlyCap2CameraControl_v110.dll
         FlyCapture2_v110.dll
@@ -28,9 +36,6 @@ on either a 32 or 64 bit system using::
         FlyCapture2GUI_C_v110.dll
         FlyCapture2GUI_v110.dll
         libiomp5md.dll
-
-    On ubuntu, you should download flycapture2, extract it and install with
-    ``install_flycapture.sh``. That will put the required ``.so`` files on the path.
 
 For other OSs or to compile with master see below.
 
@@ -42,9 +47,9 @@ Requirements
 
 To compile pyflycap2 we need:
 
-    * Python 2.7, 3.3+
+    * Python 3.5+
     * Cython (``pip install --upgrade cython``).
-    * A c compiler (e.g. MinGW, ``pip install mingwpy``, on windows).
+    * A c compiler (e.g. visual studio, on windows).
     * FlyCapture2 SDK which includes the required headers, lib, and dll (.so) files.
       It can be downloaded only from the Point Gray website.
 
@@ -70,10 +75,10 @@ Preparing Windows
   automatically be included and added to the PATH at runtime.
 * Now, in your environment set the environment variable ``PYFLYCAP2_INCLUDE``
   to the full path where the include files are (typically also under
-  `Point Grey Research\FlyCapture2\include`). E.g. on bash::
+  `Point Grey Research\FlyCapture2\include`). E.g. on cmd::
 
-      export PYFLYCAP2_INCLUDE="E:\Point Grey Research\FlyCapture2\include"
-      export PYFLYCAP2_LIB="E:\Point Grey Research\FlyCapture2\bin64"
+      set PYFLYCAP2_INCLUDE="E:\Point Grey Research\FlyCapture2\include"
+      set PYFLYCAP2_LIB="E:\Point Grey Research\FlyCapture2\bin64"
 
 Preparing Ubuntu
 ^^^^^^^^^^^^^^^^^^^
@@ -86,11 +91,11 @@ Compiling
 ^^^^^^^^^^^^^
 
 * Now we're ready to compile. CD to the pyflycap2 directory
-  such that Makefile is in your path and just execute `make`. This will
-  compile pyflycap2. Alternatively run ``python setup.py build_ext --inplace``.
+  and run ``python setup.py build_ext --inplace`` to manually compile
+  or run ``pip install -e .`` to compile it and make it available to python.
 * Finally, assuming pyflycap2 is properly installed, you should be
   to import pyflycap2, as long as the dlls (.so) are still on the PATH.
   Once compiled, only the dlls (.so) are required.
 * On linux, the file ``/usr/bin/FlyCapture2GUI_GTK.glade`` needs to be
-  copied to the currenty directory if any of the GUI functions are
+  copied to the current directory if any of the GUI functions are
   used, otherwise an error will be raised and the GUI will not launch.
