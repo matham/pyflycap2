@@ -39,7 +39,7 @@ jobs:
         sudo dpkg -i updatorgui*
     - name: Make wheel
       run: |
-        python3 -m pip install --upgrade pip virtualenv setuptools sphinx cython wheel
+        python3 -m pip install --upgrade pip virtualenv setuptools sphinx cython wheel sphinx-rtd-theme
         python3 -m pip install -e .
         python3 setup.py bdist_wheel
     - name: Upload wheel
