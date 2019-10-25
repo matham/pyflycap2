@@ -39,10 +39,9 @@ jobs:
         sudo dpkg -i updatorgui*
     - name: Make wheel
       run: |
-        python3 -m pip install --upgrade pip virtualenv setuptools sphinx auditwheel cython wheel==0.31.1
+        python3 -m pip install --upgrade pip virtualenv setuptools sphinx cython wheel
         python3 -m pip install -e .
         python3 setup.py bdist_wheel
-        auditwheel repair --plat manylinux2010_x86_64 dist/*.whl -w dist/
     - name: Upload wheel
       uses: actions/upload-artifact@master
       with:
