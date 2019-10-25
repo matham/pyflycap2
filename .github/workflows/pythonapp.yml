@@ -37,23 +37,24 @@ jobs:
         sudo dpkg -i flycap-2*
         sudo dpkg -i flycapture-doc-2*
         sudo dpkg -i updatorgui*
-        cd ../../
-
-        python3 -m pip install --upgrade pip virtualenv wheel setuptools sphinx auditwheel cython
+    - name: Make wheel
+      run: |
+        python3 -m pip install --upgrade pip virtualenv setuptools sphinx auditwheel cython wheel==0.31.1
         python3 -m pip install -e .
         python3 setup.py bdist_wheel
-        ls
         auditwheel repair --plat manylinux2010_x86_64 dist/*.whl -w dist/
-    - uses: actions/upload-artifact@master
+    - name: Upload wheel
+      uses: actions/upload-artifact@master
       with:
         name: py_wheel
         path: dist
     - name: Generate docs
+      if: github.ref == 'refs/heads/master' && matrix.python == '3.7'
       run: |
         cd doc
         make html
     - name: gh-pages upload
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.python == '3.7'
+      if: github.ref == 'refs/heads/master' && matrix.python == '3.7'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -91,17 +92,16 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.arch }}
-    - name: Make wheels
+    - name: Get dependencies
       env:
         ZIP_PASS: ${{ secrets.ZIP_PASS }}
       run: |
         Invoke-WebRequest "https://github.com/matham/pyflycap2/releases/download/v0.1.0/flycap.7z" -OutFile "flycap.7z"
         7z x "flycap.7z" -p"$env:ZIP_PASS"
+    - name: Make wheel
         $env:PYFLYCAP2_INCLUDE = ".\flycap\include"
         $env:PYFLYCAP2_LIB = ".\flycap\${{ matrix.arch }}"
         $env:PYFLYCAP2_WHEEL_DEPS = ".\flycap\${{ matrix.arch }}"
-        ls $env:PYFLYCAP2_INCLUDE
-        ls $env:PYFLYCAP2_LIB
 
         python -m pip install --upgrade pip virtualenv wheel setuptools cython
         python -m pip install -e .
