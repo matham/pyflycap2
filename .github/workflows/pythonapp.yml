@@ -99,6 +99,7 @@ jobs:
         Invoke-WebRequest "https://github.com/matham/pyflycap2/releases/download/v0.1.0/flycap.7z" -OutFile "flycap.7z"
         7z x "flycap.7z" -p"$env:ZIP_PASS"
     - name: Make wheel
+      run: |
         $env:PYFLYCAP2_INCLUDE = ".\flycap\include"
         $env:PYFLYCAP2_LIB = ".\flycap\${{ matrix.arch }}"
         $env:PYFLYCAP2_WHEEL_DEPS = ".\flycap\${{ matrix.arch }}"
@@ -107,7 +108,8 @@ jobs:
         python -m pip install -e .
 
         python -W ignore setup.py bdist_wheel
-    - uses: actions/upload-artifact@master
+    - name: Upload wheel
+      uses: actions/upload-artifact@master
       with:
         name: py_wheel
         path: dist
