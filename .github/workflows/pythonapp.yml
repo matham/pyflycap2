@@ -3,7 +3,7 @@ name: Python application
 on: [push]
 
 jobs:
-  docs:
+  linux_wheels:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
@@ -39,7 +39,7 @@ jobs:
         sudo dpkg -i updatorgui*
         cd ../../
 
-        python3 -m pip install --upgrade pip virtualenv wheel setuptools sphinx auditwheel
+        python3 -m pip install --upgrade pip virtualenv wheel setuptools sphinx auditwheel cython
         python3 -m pip install -e .
         python3 setup.py bdist_wheel
         ls
@@ -106,7 +106,7 @@ jobs:
         python -m pip install --upgrade pip virtualenv wheel setuptools cython
         python -m pip install -e .
 
-        python setup.py bdist_wheel
+        python -W ignore setup.py bdist_wheel
     - uses: actions/upload-artifact@master
       with:
         name: py_wheel
