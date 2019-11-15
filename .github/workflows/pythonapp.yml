@@ -91,6 +91,11 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.arch }}
+    - name: Make sdist
+      if: matrix.arch == 'x64' && matrix.python == '3.8'
+      run: |
+        python -m pip install --upgrade pip virtualenv wheel setuptools
+        python -W ignore setup.py sdist
     - name: Get dependencies
       env:
         ZIP_PASS: ${{ secrets.ZIP_PASS }}
