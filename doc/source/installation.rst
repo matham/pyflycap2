@@ -7,13 +7,12 @@ Installation
 Using binary wheels
 -------------------
 
-On Windows, compiled PyFlyCap2 binaries can be installed for python 3.6+,
-on either a 32 or 64 bit system. Similarly for Ubuntu on 64-bit. To install
-from pypi, just do::
+On **Windows**, compiled PyFlyCap2 binaries can be installed for python 3.6+,
+on either a 32 or 64 bit system. To install from pypi, just do::
 
     pip install pyflycap2
 
-Or, ot install a specific release, locate the compiled wheel for the [latest
+For **Ubuntu** on 64-bit, or to install a specific release, locate the compiled wheel for the [latest
 release](https://github.com/matham/pyflycap2/releases), or a dev wheel
 by downloading the artifact from the last
 [Github action run](https://github.com/matham/pyflycap2/actions). Then
