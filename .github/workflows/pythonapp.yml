@@ -108,6 +108,7 @@ jobs:
         $env:PYFLYCAP2_LIB = ".\flycap\${{ matrix.arch }}"
         $env:PYFLYCAP2_WHEEL_DEPS = ".\flycap\${{ matrix.arch }}"
 
+        python -m pip install --upgrade pip virtualenv wheel setuptools cython
         python -m pip install -e .
 
         python -W ignore setup.py bdist_wheel
