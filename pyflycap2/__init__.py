@@ -22,4 +22,6 @@ It is read only.
 
 if isdir(_bins):
     os.environ["PATH"] += os.pathsep + _bins
+    if hasattr(os, 'add_dll_directory'):
+        os.add_dll_directory(_bins)
     dep_bins = [_bins]
