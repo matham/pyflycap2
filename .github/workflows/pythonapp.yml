@@ -42,11 +42,20 @@ jobs:
         python3 -m pip install --upgrade pip virtualenv setuptools sphinx cython wheel sphinx-rtd-theme
         python3 -m pip install -e .
         python3 setup.py bdist_wheel
+        cp /usr/src/flycapture/src/FlyCapture2GUI/FlyCapture2GUI_GTK.glade dist
     - name: Upload wheel
       uses: actions/upload-artifact@master
       with:
         name: py_wheel
         path: dist
+    - name: Upload to GitHub Release
+      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: dist/*
+        draft: true
     - name: Generate docs
       if: github.ref == 'refs/heads/master' && matrix.python == '3.7'
       run: |
@@ -117,3 +126,11 @@ jobs:
       with:
         name: py_wheel
         path: dist
+    - name: Upload to GitHub Release
+      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: dist/*
+        draft: true
