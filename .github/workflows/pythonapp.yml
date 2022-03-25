@@ -110,7 +110,7 @@ jobs:
         cd flycap
         Set-PSDebug -Trace 2
         $exe = "$pwd\FlyCapture_$env:FLYCAP_VERSION`_${{ matrix.arch }}.exe"
-        & $exe /ExtractCab /nosplash /q
+        & $exe /ExtractCab /nosplash /q | Out-Null
         7z x SupportFiles/FlyCapture_$env:FLYCAP_VERSION`_${{ matrix.arch }}.msi
         mv vcredist_crt_v140.msvcp140.dll msvcp140.dll
         Set-PSDebug -Trace 0
