@@ -109,7 +109,8 @@ jobs:
         7z x -oflycap -p"${env:ZIP_PASS}" "flycap.7z"
         cd flycap
         Set-PSDebug -Trace 2
-        & .\FlyCapture_${env:FLYCAP_VERSION}_${{ matrix.arch }}.exe /ExtractCab /nosplash /q
+        $exe = ${pwd}\FlyCapture_${env:FLYCAP_VERSION}_${{ matrix.arch }}.exe
+        & $exe /ExtractCab /nosplash /q
         7z x SupportFiles/FlyCapture_$env:FLYCAP_VERSION`_${{ matrix.arch }}.msi
         mv vcredist_crt_v140.msvcp140.dll msvcp140.dll
         Set-PSDebug -Trace 0
