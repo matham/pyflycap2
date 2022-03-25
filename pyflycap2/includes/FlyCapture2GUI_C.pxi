@@ -1,4 +1,4 @@
-cdef extern from "C/FlyCapture2GUI_C.h" nogil:
+cdef extern from "FlyCapture2GUI_C.h" nogil:
 
     fc2Error fc2CreateGUIContext(fc2GuiContext* pContext)
 

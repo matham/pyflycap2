@@ -4,14 +4,14 @@ on: [push]
 
 jobs:
   linux_wheels:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: [ '3.6', '3.7', '3.8' ]
+        python: [ '3.7', '3.8', '3.9', '3.10' ]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
     - name: Install dependencies
@@ -43,17 +43,17 @@ jobs:
         python3 -m pip install -e .
         python3 setup.py bdist_wheel
     - name: Upload wheel
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: py_wheel
         path: dist
     - name: Generate docs
-      if: github.ref == 'refs/heads/master' && matrix.python == '3.7'
+      if: github.ref == 'refs/heads/master' && matrix.python == '3.10'
       run: |
         cd doc
         make html
     - name: gh-pages upload
-      if: github.ref == 'refs/heads/master' && matrix.python == '3.7'
+      if: github.ref == 'refs/heads/master' && matrix.python == '3.10'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -80,10 +80,13 @@ jobs:
 
   windows_wheels:
     runs-on: windows-latest
+    env:
+      FLYCAP_VERSION: '2.13.3.61'
     strategy:
       matrix:
-        python: [ '3.6', '3.7', '3.8' ]
+        python: [ '3.7', '3.8', '3.9', '3.10' ]
         arch: ['x64', 'x86']
+
     steps:
     - uses: actions/checkout@v1
     - name: Set up Python
@@ -91,29 +94,34 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.arch }}
+
     - name: Make sdist
-      if: matrix.arch == 'x64' && matrix.python == '3.8'
+      if: matrix.arch == 'x64' && matrix.python == '3.10'
       run: |
-        python -m pip install --upgrade pip virtualenv wheel setuptools cython
-        python -W ignore setup.py sdist
+        python -m pip install build
+        python -m build --sdist
+
     - name: Get dependencies
       env:
         ZIP_PASS: ${{ secrets.ZIP_PASS }}
       run: |
-        Invoke-WebRequest "https://github.com/matham/pyflycap2/releases/download/v0.1.0/flycap.7z" -OutFile "flycap.7z"
-        7z x "flycap.7z" -p"$env:ZIP_PASS"
+        Invoke-WebRequest "https://github.com/matham/pyflycap2/releases/download/v0.1.0/FlyCapture_${env:FLYCAP_VERSION}_${{ matrix.arch }}.7z" -OutFile "flycap.7z"
+        7z x -oflycap -p"${env:ZIP_PASS}" "flycap.7z"
+        cd flycap
+        .\FlyCapture_${env:FLYCAP_VERSION}_${{ matrix.arch }}.exe /ExtractCab /nosplash /q
+        7z x SupportFiles/FlyCapture_${env:FLYCAP_VERSION}_${{ matrix.arch }}.msi
+        mv vcredist_crt_v140.msvcp140.dll msvcp140.dll
+
     - name: Make wheel
       run: |
-        $env:PYFLYCAP2_INCLUDE = ".\flycap\include"
-        $env:PYFLYCAP2_LIB = ".\flycap\${{ matrix.arch }}"
-        $env:PYFLYCAP2_WHEEL_DEPS = ".\flycap\${{ matrix.arch }}"
+        $env:PYFLYCAP2_INCLUDE = "${pwd}/flycap"
+        $env:PYFLYCAP2_LIB = "${pwd}/flycap"
+        $env:PYFLYCAP2_WHEEL_DEPS = "${pwd}/flycap"
 
-        python -m pip install --upgrade pip virtualenv wheel setuptools cython
-        python -m pip install -e .
+        python -m build --wheel
 
-        python -W ignore setup.py bdist_wheel
     - name: Upload wheel
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: py_wheel
         path: dist

@@ -1,9 +1,9 @@
 Project that provides python bindings for the FlyCapture2 library
 by Point Gray.
 
-For more information: http://matham.github.io/pyflycap2/index.html
+For more information: https://matham.github.io/pyflycap2/index.html
 
-To install: http://matham.github.io/pyflycap2/installation.html
+To install: https://matham.github.io/pyflycap2/installation.html
 
 .. image:: https://github.com/matham/pyflycap2/workflows/Python%20application/badge.svg
     :target: https://github.com/matham/pyflycap2/actions

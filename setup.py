@@ -4,19 +4,26 @@ from os.path import join, exists, dirname, abspath, isdir
 from os import environ, listdir
 from pyflycap2 import __version__
 from Cython.Distutils import build_ext
+import pathlib
+
 cmdclass = {'build_ext': build_ext}
 
 
 def get_wheel_data():
-    data = []
     deps = environ.get('PYFLYCAP2_WHEEL_DEPS')
-    if deps and isdir(deps):
-        data.append(
-            ('share/pyflycap2/flycapture2/bin',
-             [join(deps, f) for f in listdir(deps)]
-            )
-        )
-    return data
+    if not deps or not isdir(deps):
+        return []
+
+    root = pathlib.Path(deps)
+    items = list(map(str, root.glob('FlyCap*_v140.dll')))
+    items = [
+        val for val in items
+        if val[-10] != 'd' or val[:-10] + 'd' + val[-10:] in items
+    ]
+    items.extend(map(str, root.glob('msvcp140.dll')))
+    items.extend(map(str, root.glob('libiomp5md.dll')))
+
+    return [('share/pyflycap2/flycapture2/bin', items)]
 
 
 include_dirs = []
@@ -60,7 +67,7 @@ setup(
     author='Matthew Einhorn',
     license='MIT',
     description='Cython bindings for Point Gray Fly Capture 2.',
-    url='http://matham.github.io/pyflycap2/',
+    url='https://matham.github.io/pyflycap2/',
     long_description=long_description,
     classifiers=[
         'License :: OSI Approved :: MIT License',
@@ -74,5 +81,4 @@ setup(
         'Intended Audience :: Developers'],
     packages=['pyflycap2'],
     data_files=get_wheel_data(),
-    cmdclass=cmdclass, ext_modules=ext_modules,
-    setup_requires=['cython'])
+    cmdclass=cmdclass, ext_modules=ext_modules)
