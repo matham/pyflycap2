@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   linux_wheels:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       matrix:
         python: [ '3.7', '3.8', '3.9', '3.10' ]
@@ -80,8 +80,6 @@ jobs:
 
   windows_wheels:
     runs-on: windows-latest
-    env:
-      FLYCAP_VERSION: '2.13.3.61'
     strategy:
       matrix:
         python: [ '3.7', '3.8', '3.9', '3.10' ]
@@ -104,6 +102,7 @@ jobs:
     - name: Get dependencies
       env:
         ZIP_PASS: ${{ secrets.ZIP_PASS }}
+        FLYCAP_VERSION: "2.13.3.61"
       run: |
         Invoke-WebRequest "https://github.com/matham/pyflycap2/releases/download/v0.1.0/FlyCapture_${env:FLYCAP_VERSION}_${{ matrix.arch }}.7z" -OutFile "flycap.7z"
         7z x -oflycap -p"${env:ZIP_PASS}" "flycap.7z"
