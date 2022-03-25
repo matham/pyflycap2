@@ -34,6 +34,7 @@ if sys.platform in ('win32', 'cygwin'):
 else:
     libraries = ['flycapturegui-c', 'flycapture-c']
     include_dirs.append('/usr/include/flycapture')
+    include_dirs.append('/usr/include/flycapture/C')
 
 include = environ.get('PYFLYCAP2_INCLUDE')
 if include:

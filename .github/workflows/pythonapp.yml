@@ -17,15 +17,19 @@ jobs:
     - name: Install dependencies
       env:
         ZIP_PASS: ${{ secrets.ZIP_PASS }}
+        FLYCAP_VERSION: "2.13.3.31"
       run: |
         sudo apt update
         sudo apt -y install libraw1394-11 libavcodec57 libavformat57 libswscale4 libswresample2 libavutil55
         sudo apt -y install libgtkmm-2.4-1v5 libglademm-2.4-1v5 libgtkglextmm-x11-1.2-0v5 libgtkmm-2.4-dev
-        sudo apt -y install libglademm-2.4-dev libgtkglextmm-x11-1.2-dev libusb-1.0-0 wget p7zip-full patchelf
-        wget https://github.com/matham/pyflycap2/releases/download/v0.1.0/flycap.7z
-        7z x flycap.7z -p$ZIP_PASS
+        sudo apt -y install libglademm-2.4-dev libgtkglextmm-x11-1.2-dev libusb-1.0-0 curl p7zip-full patchelf
 
-        cd flycap/flycapture2-2.13.3.31-amd64
+        name="flycapture2-$FLYCAP_VERSION-amd64-pkg_Ubuntu18.04"
+        curl -sLO "https://github.com/matham/pyflycap2/releases/download/v0.1.0/$name.7z"
+        7z x "$name.7z" "-p$ZIP_PASS"
+        tar xzf "$name.tgz"
+
+        cd flycapture2-$FLYCAP_VERSION-amd64
         sudo dpkg -i libflycapture-2*
         sudo dpkg -i libflycapturegui-2*
         sudo dpkg -i libflycapturevideo-2*
@@ -37,19 +41,24 @@ jobs:
         sudo dpkg -i flycap-2*
         sudo dpkg -i flycapture-doc-2*
         sudo dpkg -i updatorgui*
+
     - name: Make wheel
       run: |
-        python3 -m pip install --upgrade pip virtualenv setuptools sphinx cython wheel sphinx-rtd-theme
-        python3 -m pip install -e .
-        python3 setup.py bdist_wheel
+        python3 -m pip install --upgrade sphinx sphinx-rtd-theme build auditwheel
+        python3 -m build --wheel .
+        auditwheel repair --plat manylinux_2_27_x86_64 dist/*.whl -w dist/
+        rm dist/*-linux_x86_64*
+
     - name: Upload wheel
       uses: actions/upload-artifact@v2
       with:
         name: py_wheel
         path: dist
+
     - name: Generate docs
       if: github.ref == 'refs/heads/master' && matrix.python == '3.10'
       run: |
+        python3 -m pip install -e .
         cd doc
         make html
     - name: gh-pages upload
