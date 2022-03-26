@@ -7,7 +7,7 @@ Installation
 Using binary wheels
 -------------------
 
-On **Windows**, compiled PyFlyCap2 binaries can be installed for python 3.6+,
+On **Windows**, compiled PyFlyCap2 binaries can be installed for python
 on either a 32 or 64 bit system. To install from pypi, just do::
 
     pip install pyflycap2
@@ -23,7 +23,7 @@ install it using::
 .. warning::
 
     On linux, the compiled wheel doesn't contain any flycapture2 library binaries,
-    so flycapture should be installed before using pyflycap2 by following the
+    so flycapture2 should be installed before using pyflycap2 by following the
     instructions on the point gray [website](https://www.flir.com/products/flycapture-sdk).
 
     E.g. on ubuntu, you should download flycapture2, extract it and install with
@@ -51,8 +51,7 @@ Requirements
 
 To compile pyflycap2 we need:
 
-    * Python 3.5+
-    * Cython (``pip install --upgrade cython``).
+    * Python
     * A c compiler (e.g. visual studio, on windows).
     * FlyCapture2 SDK which includes the required headers, lib, and dll (.so) files.
       It can be downloaded only from the Point Gray website.
@@ -95,8 +94,7 @@ Compiling
 ^^^^^^^^^^^^^
 
 * Now we're ready to compile. CD to the pyflycap2 directory
-  and run ``python setup.py build_ext --inplace`` to manually compile
-  or run ``pip install -e .`` to compile it and make it available to python.
+  and run ``pip install -e .`` to compile it and make it available to python.
 * Finally, assuming pyflycap2 is properly installed, you should be
   to import pyflycap2, as long as the dlls (.so) are still on the PATH.
   Once compiled, only the dlls (.so) are required.

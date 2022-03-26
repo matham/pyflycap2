@@ -9,11 +9,6 @@ To install: https://matham.github.io/pyflycap2/installation.html
     :target: https://github.com/matham/pyflycap2/actions
     :alt: Github CI status
 
-.. warning::
-
-    Due to the licensing restrictions, Fly Capture dlls cannot be redistributed,
-    therefore the wheels only include the compiled bindings. To use, the Fly Capture
-    dlls must be provided independently, e.g. by placing them on the system PATH.
 
 Examples
 =============
