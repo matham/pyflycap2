@@ -40,7 +40,6 @@ jobs:
       run: |
         python3 -m pip install --upgrade sphinx sphinx-rtd-theme build
         python3 -m build --wheel .
-        cp /usr/src/flycapture/src/FlyCapture2GUI/FlyCapture2GUI_GTK.glade dist
 
     - name: Upload wheel
       uses: actions/upload-artifact@v2
