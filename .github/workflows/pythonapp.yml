@@ -58,6 +58,7 @@ jobs:
     - name: Generate docs
       if: github.ref == 'refs/heads/master' && matrix.python == '3.10'
       run: |
+        python3 -m pip install cython setuptools
         python3 -m pip install -e .
         cd doc
         make html
