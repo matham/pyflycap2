@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; PyFlyCap2  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> PyFlyCap2
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="getting_started.html">Getting Started</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-binary-wheels">Using binary wheels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compiling">Compiling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#compiling-pyflycap2">Compiling pyflycap2</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">The PyFlyCap2 API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyFlyCap2</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="getting_started.html">Getting Started</a> &raquo;</li>
+      <li>Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<span id="install"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h1>
+<section id="using-binary-wheels">
+<h2>Using binary wheels<a class="headerlink" href="#using-binary-wheels" title="Permalink to this headline"></a></h2>
+<p>On <strong>Windows</strong>, compiled PyFlyCap2 binaries can be installed for python
+on either a 32 or 64 bit system. To install from pypi, just do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">pyflycap2</span>
+</pre></div>
+</div>
+<p>For <strong>Ubuntu</strong> on 64-bit, or to install a specific release, locate the compiled wheel for the [latest
+release](<a class="reference external" href="https://github.com/matham/pyflycap2/releases">https://github.com/matham/pyflycap2/releases</a>), or a dev wheel
+by downloading the artifact from the last
+[Github action run](<a class="reference external" href="https://github.com/matham/pyflycap2/actions">https://github.com/matham/pyflycap2/actions</a>). Then
+install it using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">pyflycap2_wheel_name</span><span class="o">.</span><span class="n">whl</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>On linux, the compiled wheel doesn’t contain any flycapture2 library binaries,
+so flycapture2 should be installed before using pyflycap2 by following the
+instructions on the point gray [website](<a class="reference external" href="https://www.flir.com/products/flycapture-sdk">https://www.flir.com/products/flycapture-sdk</a>).</p>
+<p>E.g. on ubuntu, you should download flycapture2, extract it and install with
+<code class="docutils literal notranslate"><span class="pre">install_flycapture.sh</span></code>. That will put the required <code class="docutils literal notranslate"><span class="pre">.so</span></code> files on the path.</p>
+<p>On Windows, the following dlls are required, but are <strong>already included</strong> in the wheel.
+Only provide them if manually compiling pyflycap2:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">FlyCap2CameraControl_v110</span><span class="o">.</span><span class="n">dll</span>
+<span class="n">FlyCapture2_v110</span><span class="o">.</span><span class="n">dll</span>
+<span class="n">FlyCapture2GUI_Managed_v110</span><span class="o">.</span><span class="n">dll</span>
+<span class="n">FlyCapture2Managed_v110</span><span class="o">.</span><span class="n">dll</span>
+<span class="n">FlyCapture2_C_v110</span><span class="o">.</span><span class="n">dll</span>
+<span class="n">FlyCapture2GUI_C_v110</span><span class="o">.</span><span class="n">dll</span>
+<span class="n">FlyCapture2GUI_v110</span><span class="o">.</span><span class="n">dll</span>
+<span class="n">libiomp5md</span><span class="o">.</span><span class="n">dll</span>
+</pre></div>
+</div>
+</div>
+<p>For other OSs or to compile with master see below.</p>
+</section>
+<section id="compiling">
+<h2>Compiling<a class="headerlink" href="#compiling" title="Permalink to this headline"></a></h2>
+<section id="requirements">
+<h3>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline"></a></h3>
+<p>To compile pyflycap2 we need:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Python</p></li>
+<li><p>A c compiler (e.g. visual studio, on windows).</p></li>
+<li><p>FlyCapture2 SDK which includes the required headers, lib, and dll (.so) files.
+It can be downloaded only from the Point Gray website.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="compiling-pyflycap2">
+<h3>Compiling pyflycap2<a class="headerlink" href="#compiling-pyflycap2" title="Permalink to this headline"></a></h3>
+<p>This library provides Cython bindings to FlyCapture2 which can be called form
+Python. That means that we need to compile the Cython code and link with
+the FlyCapture2 dlls (.so). This guide describes how to use MinGW gcc as the
+compiler.</p>
+<section id="preparing-windows">
+<h4>Preparing Windows<a class="headerlink" href="#preparing-windows" title="Permalink to this headline"></a></h4>
+<ul>
+<li><p>Locate <cite>FlyCapture2GUI_C.dll</cite> and the other dlls listed above.
+The dlls are typically under <cite>Point Grey ResearchFlyCapture2bin64</cite> or just
+<cite>bin</cite> for a 32 bit installation. The <cite>Point Grey Research</cite> directory
+is typically under Program Files.</p></li>
+<li><p>Now, in your environment set the environment variable <code class="docutils literal notranslate"><span class="pre">PYFLYCAP2_LIB</span></code>
+to the full path where those dll files are. Those dlls should also be added to
+the PATH by e.g. setting <code class="docutils literal notranslate"><span class="pre">$PATH=$PATH:dll_path</span></code> so that it’ll be found at
+runtime. When making or installing from a wheel with these dlls, they will
+automatically be included and added to the PATH at runtime.</p></li>
+<li><p>Now, in your environment set the environment variable <code class="docutils literal notranslate"><span class="pre">PYFLYCAP2_INCLUDE</span></code>
+to the full path where the include files are (typically also under
+<cite>Point Grey ResearchFlyCapture2include</cite>). E.g. on cmd:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">set</span> <span class="n">PYFLYCAP2_INCLUDE</span><span class="o">=</span><span class="s2">&quot;E:\Point Grey Research\FlyCapture2\include&quot;</span>
+<span class="nb">set</span> <span class="n">PYFLYCAP2_LIB</span><span class="o">=</span><span class="s2">&quot;E:\Point Grey Research\FlyCapture2</span><span class="se">\b</span><span class="s2">in64&quot;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="preparing-ubuntu">
+<h4>Preparing Ubuntu<a class="headerlink" href="#preparing-ubuntu" title="Permalink to this headline"></a></h4>
+<ul>
+<li><p>If flycapture2 was installed with <code class="docutils literal notranslate"><span class="pre">install_flycapture.sh</span></code>, just do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">PYFLYCAP2_INCLUDE</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="n">include</span><span class="o">/</span><span class="n">flycapture</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="id1">
+<h4>Compiling<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h4>
+<ul class="simple">
+<li><p>Now we’re ready to compile. CD to the pyflycap2 directory
+and run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> to compile it and make it available to python.</p></li>
+<li><p>Finally, assuming pyflycap2 is properly installed, you should be
+to import pyflycap2, as long as the dlls (.so) are still on the PATH.
+Once compiled, only the dlls (.so) are required.</p></li>
+<li><p>On linux, the file <code class="docutils literal notranslate"><span class="pre">/usr/bin/FlyCapture2GUI_GTK.glade</span></code> needs to be
+copied to the current directory if any of the GUI functions are
+used, otherwise an error will be raised and the GUI will not launch.</p></li>
+</ul>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="getting_started.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2015, Matthew Einhorn.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

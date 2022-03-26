@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Utilities &mdash; PyFlyCap2  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Bindings" href="interface.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> PyFlyCap2
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="api.html">The PyFlyCap2 API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pyflycap2.html">PyFlyCap2 Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interface.html">Bindings</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Utilities</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyFlyCap2</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="api.html">The PyFlyCap2 API</a> &raquo;</li>
+      <li>Utilities</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <span class="target" id="module-pyflycap2.utils"><span id="utils-api"></span></span><section id="utilities">
+<h1>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline"></a></h1>
+<p>Module for extracting cython headers from the fly capture c headers.
+For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">header</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;E:\Point Grey Research\FlyCapture2\include\FlyCapture2_C&#39;</span>
+<span class="n">content</span> <span class="o">=</span> <span class="n">parse_header</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">.h&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">header</span><span class="p">))</span>
+<span class="n">dump_cython</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">.h&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">header</span><span class="p">),</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">.pxi&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">header</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyflycap2.utils.EnumMemberSpec">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">EnumMemberSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.EnumMemberSpec" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>Represents a c enum member.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.EnumMemberSpec.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pyflycap2.utils.EnumMemberSpec.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.EnumMemberSpec.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#pyflycap2.utils.EnumMemberSpec.value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyflycap2.utils.EnumSpec">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">EnumSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tp_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.EnumSpec" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>Represents a c enum definition.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.EnumSpec.names">
+<span class="sig-name descname"><span class="pre">names</span></span><a class="headerlink" href="#pyflycap2.utils.EnumSpec.names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.EnumSpec.tp_name">
+<span class="sig-name descname"><span class="pre">tp_name</span></span><a class="headerlink" href="#pyflycap2.utils.EnumSpec.tp_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.EnumSpec.values">
+<span class="sig-name descname"><span class="pre">values</span></span><a class="headerlink" href="#pyflycap2.utils.EnumSpec.values" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyflycap2.utils.FunctionSpec">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">FunctionSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pointer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.FunctionSpec" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>Represents a c function prototype.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.FunctionSpec.args">
+<span class="sig-name descname"><span class="pre">args</span></span><a class="headerlink" href="#pyflycap2.utils.FunctionSpec.args" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.FunctionSpec.dec">
+<span class="sig-name descname"><span class="pre">dec</span></span><a class="headerlink" href="#pyflycap2.utils.FunctionSpec.dec" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.FunctionSpec.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pyflycap2.utils.FunctionSpec.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.FunctionSpec.pointer">
+<span class="sig-name descname"><span class="pre">pointer</span></span><a class="headerlink" href="#pyflycap2.utils.FunctionSpec.pointer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.FunctionSpec.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#pyflycap2.utils.FunctionSpec.type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyflycap2.utils.StructSpec">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">StructSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tp_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">members</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.StructSpec" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>Represents a c struct definition.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.StructSpec.members">
+<span class="sig-name descname"><span class="pre">members</span></span><a class="headerlink" href="#pyflycap2.utils.StructSpec.members" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.StructSpec.names">
+<span class="sig-name descname"><span class="pre">names</span></span><a class="headerlink" href="#pyflycap2.utils.StructSpec.names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.StructSpec.tp_name">
+<span class="sig-name descname"><span class="pre">tp_name</span></span><a class="headerlink" href="#pyflycap2.utils.StructSpec.tp_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyflycap2.utils.TypeDef">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">TypeDef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.TypeDef" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>Represents a c typedef.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.TypeDef.body">
+<span class="sig-name descname"><span class="pre">body</span></span><a class="headerlink" href="#pyflycap2.utils.TypeDef.body" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyflycap2.utils.VariableSpec">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">VariableSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pointer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">count</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.VariableSpec" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>Represents a variable declaration in e.g. the definition of a function
+or its return value.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.VariableSpec.count">
+<span class="sig-name descname"><span class="pre">count</span></span><a class="headerlink" href="#pyflycap2.utils.VariableSpec.count" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.VariableSpec.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pyflycap2.utils.VariableSpec.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.VariableSpec.pointer">
+<span class="sig-name descname"><span class="pre">pointer</span></span><a class="headerlink" href="#pyflycap2.utils.VariableSpec.pointer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyflycap2.utils.VariableSpec.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#pyflycap2.utils.VariableSpec.type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyflycap2.utils.dump_cython">
+<span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">dump_cython</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ofile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.dump_cython" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a cython pxi file from the output of <a class="reference internal" href="#pyflycap2.utils.parse_header" title="pyflycap2.utils.parse_header"><code class="xref py py-func docutils literal notranslate"><span class="pre">parse_header()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyflycap2.utils.format_enum">
+<span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">format_enum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">enum_def</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.format_enum" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a cython enum from a <a class="reference internal" href="#pyflycap2.utils.EnumSpec" title="pyflycap2.utils.EnumSpec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">EnumSpec</span></code></a> instance.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyflycap2.utils.format_function">
+<span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">format_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.format_function" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a cython function from a <a class="reference internal" href="#pyflycap2.utils.FunctionSpec" title="pyflycap2.utils.FunctionSpec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">FunctionSpec</span></code></a> instance.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyflycap2.utils.format_struct">
+<span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">format_struct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">struct_def</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.format_struct" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a cython struct from a <a class="reference internal" href="#pyflycap2.utils.StructSpec" title="pyflycap2.utils.StructSpec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">StructSpec</span></code></a> instance.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyflycap2.utils.format_typedef">
+<span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">format_typedef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">typedef</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.format_typedef" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a cython typedef from a <a class="reference internal" href="#pyflycap2.utils.TypeDef" title="pyflycap2.utils.TypeDef"><code class="xref py py-attr docutils literal notranslate"><span class="pre">TypeDef</span></code></a> instance.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyflycap2.utils.format_variable">
+<span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">format_variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.format_variable" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a cython variable from a <a class="reference internal" href="#pyflycap2.utils.VariableSpec" title="pyflycap2.utils.VariableSpec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">VariableSpec</span></code></a> instance.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyflycap2.utils.parse_enum">
+<span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">parse_enum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.parse_enum" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a <a class="reference internal" href="#pyflycap2.utils.EnumSpec" title="pyflycap2.utils.EnumSpec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">EnumSpec</span></code></a> instance from the input.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyflycap2.utils.parse_header">
+<span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">parse_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.parse_header" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of <a class="reference internal" href="#pyflycap2.utils.VariableSpec" title="pyflycap2.utils.VariableSpec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">VariableSpec</span></code></a>, <a class="reference internal" href="#pyflycap2.utils.FunctionSpec" title="pyflycap2.utils.FunctionSpec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">FunctionSpec</span></code></a>,
+<a class="reference internal" href="#pyflycap2.utils.StructSpec" title="pyflycap2.utils.StructSpec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">StructSpec</span></code></a>, <a class="reference internal" href="#pyflycap2.utils.EnumSpec" title="pyflycap2.utils.EnumSpec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">EnumSpec</span></code></a>, <a class="reference internal" href="#pyflycap2.utils.EnumMemberSpec" title="pyflycap2.utils.EnumMemberSpec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">EnumMemberSpec</span></code></a>, and
+<a class="reference internal" href="#pyflycap2.utils.TypeDef" title="pyflycap2.utils.TypeDef"><code class="xref py py-attr docutils literal notranslate"><span class="pre">TypeDef</span></code></a> instances representing the c header file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyflycap2.utils.parse_prototype">
+<span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">parse_prototype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prototype</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.parse_prototype" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a <a class="reference internal" href="#pyflycap2.utils.FunctionSpec" title="pyflycap2.utils.FunctionSpec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">FunctionSpec</span></code></a> instance from the input.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyflycap2.utils.parse_struct">
+<span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">parse_struct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.parse_struct" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a <a class="reference internal" href="#pyflycap2.utils.StructSpec" title="pyflycap2.utils.StructSpec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">StructSpec</span></code></a> instance from the input.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyflycap2.utils.strip_comments">
+<span class="sig-prename descclassname"><span class="pre">pyflycap2.utils.</span></span><span class="sig-name descname"><span class="pre">strip_comments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyflycap2.utils.strip_comments" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the headers with comments removed.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="interface.html" class="btn btn-neutral float-left" title="Bindings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2015, Matthew Einhorn.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
