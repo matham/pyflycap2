@@ -4,7 +4,7 @@
 Project that provides python bindings for the FlyCapture2 library
 by Point Gray.
 """
-__version__ = '0.3.1.dev0'
+__version__ = '0.3.1'
 
 import sys
 import site
