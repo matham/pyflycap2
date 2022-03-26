@@ -5,7 +5,7 @@ DEF FULL_32BIT_VALUE = 0x7FFFFFFF
 DEF MAX_STRING_LENGTH = 512
 
 
-cdef extern from "C/FlyCapture2Defs_C.h" nogil:
+cdef extern from "FlyCapture2Defs_C.h" nogil:
 
     ctypedef int BOOL
 

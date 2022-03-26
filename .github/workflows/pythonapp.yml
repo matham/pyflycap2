@@ -7,62 +7,63 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        python: [ '3.6', '3.7', '3.8' ]
+        python: [ '3.7', '3.8', '3.9', '3.10' ]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
     - name: Install dependencies
       env:
         ZIP_PASS: ${{ secrets.ZIP_PASS }}
+        FLYCAP_VERSION: "2.13.3.31"
       run: |
         sudo apt update
-        sudo apt -y install libraw1394-11 libavcodec57 libavformat57 libswscale4 libswresample2 libavutil55
+        sudo apt -y install libraw1394-11
         sudo apt -y install libgtkmm-2.4-1v5 libglademm-2.4-1v5 libgtkglextmm-x11-1.2-0v5 libgtkmm-2.4-dev
-        sudo apt -y install libglademm-2.4-dev libgtkglextmm-x11-1.2-dev libusb-1.0-0 wget p7zip-full patchelf
-        wget https://github.com/matham/pyflycap2/releases/download/v0.1.0/flycap.7z
-        7z x flycap.7z -p$ZIP_PASS
+        sudo apt -y install libglademm-2.4-dev libgtkglextmm-x11-1.2-dev libusb-1.0-0 curl p7zip-full patchelf
 
-        cd flycap/flycapture2-2.13.3.31-amd64
+        name="flycapture2-$FLYCAP_VERSION-amd64-pkg_Ubuntu18.04"
+        curl -sLO "https://github.com/matham/pyflycap2/releases/download/v0.1.0/$name.7z"
+        7z x "$name.7z" "-p$ZIP_PASS"
+        tar xzf "$name.tgz"
+
+        cd flycapture2-$FLYCAP_VERSION-amd64
         sudo dpkg -i libflycapture-2*
         sudo dpkg -i libflycapturegui-2*
-        sudo dpkg -i libflycapturevideo-2*
         sudo dpkg -i libflycapture-c-2*
         sudo dpkg -i libflycapturegui-c-2*
-        sudo dpkg -i libflycapturevideo-c-2*
-        sudo dpkg -i libmultisync-2*
-        sudo dpkg -i libmultisync-c-2*
-        sudo dpkg -i flycap-2*
-        sudo dpkg -i flycapture-doc-2*
         sudo dpkg -i updatorgui*
+
     - name: Make wheel
       run: |
-        python3 -m pip install --upgrade pip virtualenv setuptools sphinx cython wheel sphinx-rtd-theme
-        python3 -m pip install -e .
-        python3 setup.py bdist_wheel
+        python3 -m pip install --upgrade sphinx sphinx-rtd-theme build
+        python3 -m build --wheel .
         cp /usr/src/flycapture/src/FlyCapture2GUI/FlyCapture2GUI_GTK.glade dist
+
     - name: Upload wheel
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: py_wheel
         path: dist
+
     - name: Upload to GitHub Release
-      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+      uses: softprops/action-gh-release@v0.1.14
       if: startsWith(github.ref, 'refs/tags/')
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         files: dist/*
-        draft: true
+
     - name: Generate docs
-      if: github.ref == 'refs/heads/master' && matrix.python == '3.7'
+      if: github.ref == 'refs/heads/master' && matrix.python == '3.10'
       run: |
+        python3 -m pip install -e .
         cd doc
         make html
     - name: gh-pages upload
-      if: github.ref == 'refs/heads/master' && matrix.python == '3.7'
+      if: github.ref == 'refs/heads/master' && matrix.python == '3.10'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -89,10 +90,13 @@ jobs:
 
   windows_wheels:
     runs-on: windows-latest
+    env:
+      FLYCAP_VERSION: "2.13.3.61"
     strategy:
       matrix:
-        python: [ '3.6', '3.7', '3.8' ]
+        python: [ '3.7', '3.8', '3.9', '3.10' ]
         arch: ['x64', 'x86']
+
     steps:
     - uses: actions/checkout@v1
     - name: Set up Python
@@ -100,37 +104,59 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.arch }}
+
     - name: Make sdist
-      if: matrix.arch == 'x64' && matrix.python == '3.8'
+      if: matrix.arch == 'x64' && matrix.python == '3.10'
       run: |
-        python -m pip install --upgrade pip virtualenv wheel setuptools cython
-        python -W ignore setup.py sdist
+        python -m pip install build
+        python -m build --sdist
+
+    - uses: actions/cache@v2
+      id: get-deps
+      with:
+        path: flycap/
+        key: pyflycap-win-${{ env.FLYCAP_VERSION }}-${{ matrix.arch }}-0
+
     - name: Get dependencies
       env:
         ZIP_PASS: ${{ secrets.ZIP_PASS }}
+      if: steps.get-deps.outputs.cache-hit != 'true'
       run: |
-        Invoke-WebRequest "https://github.com/matham/pyflycap2/releases/download/v0.1.0/flycap.7z" -OutFile "flycap.7z"
-        7z x "flycap.7z" -p"$env:ZIP_PASS"
+        Invoke-WebRequest "https://github.com/matham/pyflycap2/releases/download/v0.1.0/FlyCapture_$env:FLYCAP_VERSION`_${{ matrix.arch }}.7z" -OutFile "flycap.7z"
+        7z x -oflycap -p"${env:ZIP_PASS}" "flycap.7z"
+        cd flycap
+        & "$pwd\FlyCapture_$env:FLYCAP_VERSION`_${{ matrix.arch }}.exe" /ExtractCab /nosplash /q | Out-Null
+        7z x SupportFiles/FlyCapture_$env:FLYCAP_VERSION`_${{ matrix.arch }}.msi
+        mv vcredist_crt_v140.msvcp140.dll msvcp140.dll
+
     - name: Make wheel
       run: |
-        $env:PYFLYCAP2_INCLUDE = ".\flycap\include"
-        $env:PYFLYCAP2_LIB = ".\flycap\${{ matrix.arch }}"
-        $env:PYFLYCAP2_WHEEL_DEPS = ".\flycap\${{ matrix.arch }}"
+        $env:PYFLYCAP2_INCLUDE = "${pwd}/flycap"
+        $env:PYFLYCAP2_LIB = "${pwd}/flycap"
+        $env:PYFLYCAP2_WHEEL_DEPS = "${pwd}/flycap"
 
-        python -m pip install --upgrade pip virtualenv wheel setuptools cython
-        python -m pip install -e .
+        python -m pip install build
+        python -m build --wheel
 
-        python -W ignore setup.py bdist_wheel
     - name: Upload wheel
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@v2
       with:
         name: py_wheel
         path: dist
+
     - name: Upload to GitHub Release
-      uses: softprops/action-gh-release@78c309ef59fdb9557cd6574f2e0be552936ed728
+      uses: softprops/action-gh-release@v0.1.14
       if: startsWith(github.ref, 'refs/tags/')
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         files: dist/*
-        draft: true
+
+    - name: Publish to PyPI
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        TWINE_USERNAME: "__token__"
+        TWINE_PASSWORD: ${{ secrets.pypi_password }}
+      run: |
+        python -m pip install twine
+        twine upload dist/*

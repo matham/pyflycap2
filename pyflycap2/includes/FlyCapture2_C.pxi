@@ -1,4 +1,4 @@
-cdef extern from "C/FlyCapture2_C.h" nogil:
+cdef extern from "FlyCapture2_C.h" nogil:
 
     fc2Error fc2CreateContext(fc2Context* pContext)
 

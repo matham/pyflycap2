@@ -270,6 +270,6 @@ if __name__ == '__main__':
 
     for name in ('FlyCapture2Defs_C', 'FlyCapture2_C', 'FlyCapture2GUI_C'):
         content = parse_header(join(include, 'C', '{}.h'.format(name)))
-        dump_cython(content, 'C/{}.h'.format(name), '{}.pxi'.format(name))
+        dump_cython(content, '{}.h'.format(name), '{}.pxi'.format(name))
 
         print('{} done!'.format(name))
