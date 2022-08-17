@@ -1,3 +1,8 @@
+pyflycap2 has been deprecated in favor of https://github.com/matham/rotpy, which is the better interface for these Point Gray cameras.
+
+
+-----------
+
 Project that provides python bindings for the FlyCapture2 library
 by Point Gray.
 
